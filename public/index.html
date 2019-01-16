@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en" class="bg-light">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="Future Engineers as Augmented Teams">
+    <meta name="author" content="Stevens Institute of Technology">
+    <link rel="icon" href="favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+
+    <link href="scripts/open-iconic/font/css/open-iconic-bootstrap.min.css" rel="stylesheet">
+    <link href="scripts/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="scripts/nouislider/distribute/nouislider.min.css" rel="stylesheet">
+
+    <title>FEAT</title>
+  </head>
+
+  <body>
+    <nav class="navbar navbar-expand-sm bg-dark navbar-dark sticky-top py-2">
+      <div class="container">
+        <a class="navbar-brand" href="index.html"><img src="images/feat.png" width="30" height="30" alt="" /> FEAT <span class="sr-only">(current)</span></a>
+        <!--<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar"><span class="navbar-toggler-icon"></span></button>
+        <div class="navbar-collapse collapse" id="navbar">
+          <ul class="navbar-nav nav-fill w-100">
+            <li class="nav-item">
+              <a class="nav-link" href="#"><span class="oi oi-person" aria-hidden="true"></span> Participant</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#"><span class="oi oi-cog" aria-hidden="true"></span> Admin</a>
+            </li>
+          </ul>
+        </div>-->
+      </div>
+    </nav>
+
+    <main role="main" class="container my-3 border-left border-right border-light">
+      <h2 id="task"></h2>
+      <div class="container container-outputs"></div>
+      <div class="container"><div class="row row-inputs"></div></div>
+    </main>
+
+    <footer class="site-footer bg-light text-center border-top border-dark">
+      <p><small class="text-muted">&copy; 2019 Stevens Institute of Technology</small></p>
+    </footer>
+    <div id="designerLogin" class="modal" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Log in</h5>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-dismiss="modal">Connect</button>
+          </div>
+      </div>
+    </div>
+
+    <script src="scripts/jquery/dist/jquery.slim.min.js"></script>
+    <script src="scripts/popper.js/dist/umd/popper.min.js"></script>
+    <script src="scripts/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="scripts/nouislider/distribute/nouislider.min.js"></script>
+    <script src="scripts/mathjs/dist/math.min.js"></script>
+    <script src="scripts/chart.js/dist/Chart.bundle.min.js"></script>
+    <script src="scripts/socket.io-client/dist/socket.io.js"></script>
+    <script>
+      $(function() {
+        var task, errorChart;
+
+        var socket = io.connect('http://localhost:3000');
+        socket.on('connect', function(data) {
+            socket.emit('join-designer', "test");
+        });
+        socket.on('id', function(data) {
+          alert('id is ' + data);
+        });
+        socket.on('task', function(data) {
+          update_task(data);
+        });
+        socket.on('design-y', function(data) {
+          update(data);
+        });
+
+        var inputs = [];
+        var outputs = [];
+        var status = [];
+
+        var update_task = function(data) {
+          task = data
+          $("#task").text(task.name);
+          for(i = 0; i < outputs.length; i++) {
+            if(outputs[i]) {
+              outputs[i].noUiSlider.destroy();
+            }
+          }
+          outputs = new Array(task.outputs.length);
+          status = new Array(task.outputs.length);
+          for(i = 0; i < task.outputs.length; i++) {
+            $(".container-outputs").append('<div class="row my-3"><div class="col-1 text-center"><label for="y'+(i+1)+'">Y<sub>1</sub></label></div><div class="col-10"><div id="y'+(i+1)+'" disabled style="width:100%"></div></div><div class="col-1"><span id="y'+(i+1)+'s" class="alert alert-danger oi oi-x" aria-hidden="true"></div></div>');
+            outputs[i] = $('#y'+(i+1))[0];
+            status[i] = $('#y'+(i+1)+'s');
+            noUiSlider.create(outputs[i], {
+                start: 0,
+                behavior: 'none',
+                range: { 'min': -1.25, 'max': 1.25 },
+                pips: {
+                    mode: 'values',
+                    values: [task.target[task.outputs[i]]-0.05, task.target[task.outputs[i]]+0.05],
+                    density: -1,
+                    format: { to: function(value) { return ""; } }
+                }
+            });
+          }
+          for(i = 0; i < inputs.length; i++) {
+            if(inputs[i]) {
+              inputs[i].noUiSlider.destroy();
+            }
+          }
+          inputs = new Array(task.inputs.length);
+          if(errorChart) {
+            errorChart.destroy();
+          }
+          $(".row-inputs").empty();
+          for(i = 0; i < task.inputs.length; i++) {
+            $(".row-inputs").append('<div class="col-3"><div class="card"><div class="card-header text-center"><label for="x"'+(i+1)+'>X<sub>'+(i+1)+'</sub></label></div><div class="card-body"><div id="x'+(i+1)+'" class="mx-auto" style="height:300px;"></div></div></div></div>');
+            inputs[i] = $('#x'+(i+1))[0];
+            noUiSlider.create(inputs[i], {
+                start: 0,
+                orientation: 'vertical',
+                range: { 'min': -1, 'max': 1 }
+            });
+            inputs[i].noUiSlider.on('set', function() {
+              var x = task.inputs.map(i => inputs[i].noUiSlider.get());
+              socket.emit('design-x', x);
+            });
+          }
+          $(".row-inputs").append('<div class="col-6"><div class="card"><div class="card-header text-center">Error</div><div class="card-body"><canvas id="errorChart" height="200px"></canvas></div></div></div>');
+
+          errorChart = new Chart($("#errorChart")[0], {
+            type: 'line',
+            data: {
+              datasets: [{
+                label: 'Error',
+                lineTension: 0,
+                fill: false
+              }]
+            },
+            options: {
+              legend: { display: false },
+              scales: {
+                xAxes: [{
+                  type: 'time'
+                }],
+                yAxes: [{
+                  ticks: { display: false }
+                }]
+              }
+            }
+          });
+          update(new Array(task.target.length).fill(0));
+        };
+        var update = function(y) {
+          var y_data = new Array(task.outputs.length);
+          for(i = 0; i < task.outputs.length; i++) {
+            y_data[i] = y[task.outputs[i]];
+          }
+          for(i = 0; i < task.outputs.length; i++) {
+            outputs[i].noUiSlider.set(y[task.outputs[i]]);
+            if(math.abs(y[task.outputs[i]]-task.target[task.outputs[i]]) <= 0.05) {
+                status[i].removeClass('alert-danger');
+                status[i].removeClass('oi-x');
+                status[i].addClass('alert-success');
+                status[i].addClass('oi-check');
+            } else {
+                status[i].removeClass('alert-success');
+                status[i].removeClass('oi-check');
+                status[i].addClass('alert-danger');
+                status[i].addClass('oi-x');
+            }
+          }
+          var error = math.norm(math.subtract(task.target, y));
+          errorChart.data.datasets[0].data.push({x: Date.now(), y: error});
+          errorChart.update();
+        };
+      });
+    </script>
+  </body>
+</html>
