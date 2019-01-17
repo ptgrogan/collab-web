@@ -55,6 +55,11 @@
         "version": "^2.2.0",
         "src": "dist/",
         "namespaced": true
+      },
+      "bootstrap4-toggle": {
+        "version": "^3.4.0",
+        "src": "{js/,css/}",
+        "namespaced": true
       }
     }
   },

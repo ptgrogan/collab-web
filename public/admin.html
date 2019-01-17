@@ -13,6 +13,7 @@
     <link href="scripts/open-iconic/font/css/open-iconic-bootstrap.min.css" rel="stylesheet">
     <link href="scripts/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="scripts/nouislider/distribute/nouislider.min.css" rel="stylesheet">
+    <link href="scripts/bootstrap4-toggle/css/bootstrap4-toggle.css" rel="stylesheet">
 
     <title>FEAT</title>
   </head>
@@ -36,9 +37,51 @@
     </nav>
 
     <main role="main" class="container my-3 border-left border-right border-light">
-      <div class="row">
-        <div class="col-11"><h2 id="task"></h2></div>
-        <div class="col-1"><div class="badge badge-secondary"><span class="oi oi-person" aria-hidden="true"> <span id="designer-id"></div></div>
+      <div class="row form-group">
+        <div class="col-8">
+          <div class="input-group">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Task</span>
+            </div>
+            <select class="form-control" id="taskSelect">
+              <option>Training #1 (1x1 U Solo)</option>
+              <option>Training #2 (2x2 U Solo)</option>
+              <option>Training #3 (2x2 C Solo)</option>
+              <option>Training #4 (3x3 U Triad)</option>
+              <option>Training #5 (3x3 C Triad)</option>
+              <option>Breezy Rain (3x3 U Solo)</option>
+              <option>Wistful Act (2x2 C Pair)</option>
+              <option>Onerous Effect (3x3 U Pair)</option>
+              <option>Hard Development (3x3 U Pair)</option>
+              <option>Better Behavior (3x3 C Pair)</option>
+              <option>Unwritten Experience (2x2 C Pair)</option>
+              <option>Hallowed Sign (2x2 C Solo)</option>
+              <option>Husky Verse (2x2 C Solo)</option>
+              <option>Economic Motion (3x3 C Triad)</option>
+              <option>Arrogant Flame (3x3 C Pair)</option>
+              <option>Absorbed Copper (4x4 C Pair)</option>
+              <option>Staking System (3x3 U Triad)</option>
+              <option>Thinkable Ink (6x6 U Solo)</option>
+              <option>Murky Mass (2x2 C Pair)</option>
+              <option>Brainy Damage (4x4 C Solo)</option>
+              <option>Flat Sleep (3x3 C Solo)</option>
+              <option>Befitting Plant (3x3 C Pair)</option>
+              <option>Noiseless Stone (4x4 C Triad)</option>
+              <option>Alert Burst (3x3 U Pair)</option>
+              <option>Statuesque Name (3x3 C Solo)</option>
+              <option>Wide Growth (6x6 U Triad)</option>
+              <option>Towering Test (3x3 U Triad)</option>
+              <option>Chief Government (4x4 U Solo)</option>
+              <option>Silky Waste (4x4 C Solo)</option>
+            </select>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" id="broadcastCheck"  data-onstyle="secondary" data-toggle="toggle" data-style="mr-1">
+             <label class="form-check-label" for="broadcastCheck">Broadcast</label>
+          </div>
+        </div>
       </div>
       <div class="container container-outputs"></div>
       <div class="container"><div class="row row-inputs"></div></div>
@@ -47,17 +90,6 @@
     <footer class="site-footer bg-light text-center border-top border-dark">
       <p><small class="text-muted">&copy; 2019 Stevens Institute of Technology</small></p>
     </footer>
-    <div id="designerLogin" class="modal" tabindex="-1" role="dialog">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Log in</h5>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-primary" data-dismiss="modal">Connect</button>
-          </div>
-      </div>
-    </div>
 
     <script src="scripts/jquery/dist/jquery.slim.min.js"></script>
     <script src="scripts/popper.js/dist/umd/popper.min.js"></script>
@@ -66,22 +98,31 @@
     <script src="scripts/mathjs/dist/math.min.js"></script>
     <script src="scripts/chart.js/dist/Chart.bundle.min.js"></script>
     <script src="scripts/socket.io-client/dist/socket.io.js"></script>
+    <script src="scripts/bootstrap4-toggle/js/bootstrap4-toggle.js"></script>
     <script>
       $(function() {
         var task, errorChart;
 
         var socket = io.connect();
         socket.on('connect', function(data) {
-            socket.emit('join-designer', "test");
-        });
-        socket.on('id', function(data) {
-          $("#designer-id").text(data+1);
+            socket.emit('join-admin', "test");
+            socket.emit('task', $('#taskSelect')[0].selectedIndex);
         });
         socket.on('task', function(data) {
           update_task(data);
         });
         socket.on('design-y', function(data) {
           update(data);
+        });
+        socket.on('broadcast', function(data) {
+          $('#broadcastCheck').prop('checked', data);
+        });
+
+        $('#taskSelect').change(function() {
+          socket.emit('task', $('#taskSelect')[0].selectedIndex);
+        });
+        $('#broadcastCheck').change(function() {
+          socket.emit('broadcast', $(this).prop('checked'));
         });
 
         var inputs = [];
@@ -90,17 +131,16 @@
 
         var update_task = function(data) {
           task = data;
-          $("#task").text(task.name);
           for(i = 0; i < outputs.length; i++) {
             if(outputs[i]) {
               outputs[i].noUiSlider.destroy();
             }
           }
-          outputs = new Array(task.outputs.length);
-          status = new Array(task.outputs.length);
+          outputs = new Array(task.outputs.flat().length);
+          status = new Array(task.outputs.flat().length);
           $(".container-outputs").empty();
-          for(i = 0; i < task.outputs.length; i++) {
-            y_i = task.outputs[i];
+          for(i = 0; i < task.outputs.flat().length; i++) {
+            y_i = i;
             $(".container-outputs").append('<div class="row my-3"><div class="col-1 text-center"><label for="y'+(y_i+1)+'">Y<sub>'+(y_i+1)+'</sub></label></div><div class="col-10"><div id="y'+(y_i+1)+'" disabled style="width:100%"></div></div><div class="col-1"><span id="y'+(y_i+1)+'s" class="alert alert-danger oi oi-x" aria-hidden="true"></div></div>');
             outputs[i] = $('#y'+(y_i+1))[0];
             status[i] = $('#y'+(y_i+1)+'s');
@@ -126,21 +166,17 @@
             errorChart.destroy();
           }
           $(".row-inputs").empty();
-          for(i = 0; i < task.inputs.length; i++) {
-            x_i = task.inputs[i];
-            $(".row-inputs").append('<div class="col-2"><div class="card"><div class="card-header text-center"><label for="x"'+(x_i+1)+'>X<sub>'+(x_i+1)+'</sub></label></div><div class="card-body"><div id="x'+(x_i+1)+'" class="mx-auto" style="height:300px;"></div></div></div></div>');
+          for(i = 0; i < task.inputs.flat().length; i++) {
+            x_i = i;
+            $(".row-inputs").append('<div class="col-2"><div class="card"><div class="card-header text-center"><label for="x"'+(x_i+1)+'>X<sub>'+(x_i+1)+'</sub></label></div><div class="card-body"><div id="x'+(x_i+1)+'" class="mx-auto" disabled style="height:300px;"></div></div></div></div>');
             inputs[i] = $('#x'+(x_i+1))[0];
             noUiSlider.create(inputs[i], {
                 start: 0,
                 orientation: 'vertical',
                 range: { 'min': -1, 'max': 1 }
             });
-            inputs[i].noUiSlider.on('set', function() {
-              var x = [...task.inputs.keys()].map(j => inputs[j].noUiSlider.get());
-              socket.emit('design-x', x);
-            });
           }
-          $(".row-inputs").append('<div class="col-'+math.min(8,math.mod(12-2*task.inputs.length,12))+'"><div class="card"><div class="card-header text-center">Error</div><div class="card-body"><canvas id="errorChart" height="200px"></canvas></div></div></div>');
+          $(".row-inputs").append('<div class="col-12"><div class="card"><div class="card-header text-center">Error</div><div class="card-body"><canvas id="errorChart" height="200px"></canvas></div></div></div>');
 
           errorChart = new Chart($("#errorChart")[0], {
             type: 'line',
@@ -166,20 +202,18 @@
           update(new Array(task.target.length).fill(0));
         };
         var update = function(y) {
-          var y_data = new Array(task.outputs.length);
           var is_new = false;
-          for(i = 0; i < task.outputs.length; i++) {
-            y_data[i] = y[task.outputs[i]];
-            if(y_data[i] != outputs[i].noUiSlider.get()) {
+          for(i = 0; i < y.length; i++) {
+            if(y[i] != outputs[i].noUiSlider.get()) {
               is_new = true;
             }
           }
           if(!is_new) {
             return;
           }
-          for(i = 0; i < task.outputs.length; i++) {
-            outputs[i].noUiSlider.set(y[task.outputs[i]]);
-            if(math.abs(y[task.outputs[i]]-task.target[task.outputs[i]]) <= 0.05) {
+          for(i = 0; i < y.length; i++) {
+            outputs[i].noUiSlider.set(y[i]);
+            if(math.abs(y[i]-task.target[i]) <= 0.05) {
                 status[i].removeClass('alert-danger');
                 status[i].removeClass('oi-x');
                 status[i].addClass('alert-success');
@@ -191,15 +225,11 @@
                 status[i].addClass('oi-x');
             }
           }
-          t_data = new Array(task.outputs.length);
-          for(i = 0; i < task.outputs.length; i++) {
-            t_data[i] = task.target[task.outputs[i]];
-          }
-          var error = math.norm(math.subtract(t_data, y_data));
+          var error = math.norm(math.subtract(task.target, y));
           errorChart.data.datasets[0].data.push({x: Date.now(), y: error});
           errorChart.update();
         };
-      });
+    });
     </script>
   </body>
 </html>
