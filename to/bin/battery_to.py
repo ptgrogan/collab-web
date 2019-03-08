@@ -27,11 +27,11 @@ def execute(infile, outfile=None):
     input_dict = json.load(infile)
     # build the example data object
     
-    example_battery = feat.Example(
-        number_cell = input_dict['number_cell'],
-        energy_cell = input_dict['energy_cell'],
-        payload_mass = input_dict['payload_mass'],
-        x_location = input_dict['x_location']
+    example_battery = feat.Battery_class(
+        number_cell = input_dict['Battery_Payload']['number_cell'],
+        energy_cell = input_dict['Battery_Payload']['energy_cell'],
+        payload_mass = input_dict['Battery_Payload']['payload_mass'],
+        x_location = input_dict['Battery_Payload']['x_location']
     )
     
     # build the example analysis output dict

@@ -16,3 +16,4 @@ __status__ = "Prototype"
 
 # expose the example.Example class to this module
 from .example import Example
+from .battery_test import Battery_class
