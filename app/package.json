@@ -1,7 +1,7 @@
 {
-  "name": "FEAT",
+  "name": "collab-web",
   "version": "1.0.0",
-  "description": "Future Engineers as Augmented Teams",
+  "description": "Collaborative Design - Web Interface",
   "author": "",
   "main": "index.js",
   "dependencies": {
@@ -70,7 +70,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@155.246.39.17:pgrogan/feat.git"
+    "url": "git@155.246.39.17:code-lab/collab-web.git"
   },
   "license": "UNLICENSED",
   "private": true
