@@ -1,8 +1,0 @@
-{
-    "Battery_Payload": {
-        "number_cell": 1,
-        "energy_cell": 1,
-        "payload_mass": 1,
-        "x_location": 1
-    }
-}
