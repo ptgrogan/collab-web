@@ -1,5 +1,5 @@
 $(function() {
-  var task, errorChart;
+  var task;
 
   var socket = io.connect();
   socket.on('connect', function(data) {
@@ -53,9 +53,6 @@ $(function() {
       }
     }
     inputs = new Array(task.inputs.length);
-    if(errorChart) {
-      errorChart.destroy();
-    }
     $(".row-inputs").empty();
     for(i = 0; i < task.inputs.length; i++) {
       x_i = task.inputs[i];
@@ -73,27 +70,6 @@ $(function() {
     }
     $(".row-inputs").append('<div class="col-'+math.min(8,math.mod(12-2*task.inputs.length,12))+'"><div class="card"><div class="card-header text-center">Error</div><div class="card-body"><canvas id="errorChart" height="200px"></canvas></div></div></div>');
 
-    errorChart = new Chart($("#errorChart")[0], {
-      type: 'line',
-      data: {
-        datasets: [{
-          label: 'Error',
-          lineTension: 0,
-          fill: false
-        }]
-      },
-      options: {
-        legend: { display: false },
-        scales: {
-          xAxes: [{
-            type: 'time'
-          }],
-          yAxes: [{
-            ticks: { display: false }
-          }]
-        }
-      }
-    });
     update(new Array(task.target.length).fill(0));
   };
   var update = function(y) {
@@ -122,12 +98,5 @@ $(function() {
           status[i].addClass('oi-x');
       }
     }
-    t_data = new Array(task.outputs.length);
-    for(i = 0; i < task.outputs.length; i++) {
-      t_data[i] = task.target[task.outputs[i]];
-    }
-    var error = math.norm(math.subtract(t_data, y_data));
-    errorChart.data.datasets[0].data.push({x: Date.now(), y: error});
-    errorChart.update();
   };
 });
