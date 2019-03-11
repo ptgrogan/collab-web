@@ -10,7 +10,10 @@ $(function() {
     update_task(data);
   });
   socket.on('design-y', function(data) {
-    update(data);
+    update_y(data);
+  });
+  socket.on('design-x', function(data) {
+    update_x(data);
   });
   socket.on('broadcast', function(data) {
     $('#broadcastCheck').prop('checked', data);
@@ -97,9 +100,14 @@ $(function() {
         }
       }
     });
-    update(new Array(task.target.length).fill(0));
+    update_y(new Array(task.target.length).fill(0));
   };
-  var update = function(y) {
+  var update_x = function(x) {
+    for(i = 0; i < x.length; i++) {
+      inputs[i].noUiSlider.set(x[i]);
+    }
+  }
+  var update_y = function(y) {
     var is_new = false;
     for(i = 0; i < y.length; i++) {
       if(y[i] != outputs[i].noUiSlider.get()) {

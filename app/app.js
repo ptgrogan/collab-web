@@ -105,11 +105,16 @@ io.on('connection', client => {
     }
     var y = math.multiply(task.coupling, x);
     var solution = math.multiply(math.transpose(task.coupling), task.target);
+    if(admin) {
+      admin.emit('design-x', x);
+    }
     if(is_broadcast) {
       io.emit('design-y', y);
     } else {
       client.emit('design-y', y);
-      admin.emit('design-y', y);
+      if(admin) {
+        admin.emit('design-y', y);
+      }
     }
     /*
     var y_data = new Array(task.outputs[id].length);
