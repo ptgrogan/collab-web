@@ -71,12 +71,6 @@ io.on('connection', client => {
         designers[i] = client;
         id = i;
         client.emit('id', id);
-        /*
-        var target_data = new Array(task.outputs[id].length);
-        for(i = 0; i < task.outputs[id].length; i++) {
-          target_data[i] = task.target[task.outputs[id][i]];
-        }
-        */
         client.emit('task', {
           name: task.name,
           target: task.target,
@@ -125,13 +119,6 @@ io.on('connection', client => {
         admin.emit('design-y', y);
       }
     }
-    /*
-    var y_data = new Array(task.outputs[id].length);
-    for(i = 0; i < task.outputs[id].length; i++) {
-      y_data[i] = y[task.outputs[id][i]];
-    }
-    socket.emit('design-y', y_data);
-    */
   });
   client.on('disconnect', () => {
     designers[id] = null;
