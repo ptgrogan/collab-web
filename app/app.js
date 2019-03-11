@@ -1,3 +1,12 @@
+/**
+ * Server application.
+ *
+ * Performs back-end operations.
+ *
+ * @author Paul T. Grogan <pgrogan@stevens.edu>.
+ * @since  0.0.0
+ */
+
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');

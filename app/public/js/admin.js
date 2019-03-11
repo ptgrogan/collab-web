@@ -1,4 +1,13 @@
-$(function() {
+/**
+ * Administrator interface script.
+ *
+ * Defines behaviors for the administrator interface.
+ *
+ * @author Paul T. Grogan <pgrogan@stevens.edu>.
+ * @since  0.0.0
+ */
+
+ $(function() {
   var task, errorChart;
 
   var socket = io.connect();
