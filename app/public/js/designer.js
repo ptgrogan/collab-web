@@ -56,7 +56,7 @@ $(function() {
     $(".row-inputs").empty();
     for(i = 0; i < task.inputs.length; i++) {
       x_i = task.inputs[i];
-      $(".row-inputs").append('<div class="col-2"><div class="text-center"><label for="x"'+(x_i+1)+'>X<sub>'+(x_i+1)+'</sub></label></div><div id="x'+(x_i+1)+'" class="mx-auto" style="height:300px;"></div></div>');
+      $(".row-inputs").append('<div class="col-2"><div class="text-center pb-3"><label for="x"'+(x_i+1)+'>X<sub>'+(x_i+1)+'</sub></label></div><div id="x'+(x_i+1)+'" class="mx-auto" style="height:300px;"></div></div>');
       inputs[i] = $('#x'+(x_i+1))[0];
       noUiSlider.create(inputs[i], {
           start: 0,
