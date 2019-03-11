@@ -9,20 +9,27 @@ This package can be used in two ways: either as a docker image or as a standalon
 Using this application as a container requires [Docker](https://www.docker.com/).
 
 Build a Docker image using the following command (from this directory):
-
-``docker build -t app .``
-
+```shell
+docker build -t app .
+```
 After the image is built, you can run the image using the following command:
+```shell
+docker run -p 80:80 app
+```
+Where the 80:80 tells Docker to map local port 80 to application port 80 (which is not normally externally accessible). The application will launch with a primary entry point of port 80:
 
-``docker run -p 80:80 app``
+ * [http://localhost:80](http://localhost:80): designer interface
+ * [http://localhost:80/admin.html](http://localhost:80/admin.html): administrator interface
 
-Where the 80:80 tells Docker to map local port 80 to application port 80 (which is not normally externally accessible). You may also want to pass an environment variable such as NODE_ENV:
-
-``docker run -p 80:80 -e NODE_ENV=production app``
-
-The application will launch with a primary entry point of port 80:
-
- * [http://localhost:80](http://localhost:80)
+To stop the application, run:
+ ```shell
+ docker ps
+ ```
+ to get the container ID and
+ ```shell
+ docker container stop <container_id>
+ ```
+ to stop the container.
 
 ### Standalone Application
 
@@ -30,9 +37,7 @@ Using this application as a standalone service requires [Node.js](https://nodejs
 
 ``nodejs``
 
-On Windows platforms, native libraries can be configured by running the following from the primary drive:
-
-``npm install --global --production windows-build-tools``
+On Windows platforms, download and install from [https://nodejs.org/en/](https://nodejs.org/en/).
 
 Once the native dependencies are installed, install dependent libraries using the following command (from this directory):
 
