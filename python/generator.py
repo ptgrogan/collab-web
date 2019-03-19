@@ -14,8 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-"""
-collab: Collaborative Design
-"""
+import json
 
-from .model import Session, Round, Task, Action
+from collab import Session
+
+for i in range(2):
+    with open('experiment{:03d}.json'.format(i+1), 'w') as out_file:
+        json.dump(Session.generate(i), out_file, default=lambda o: o.__dict__)
