@@ -5,6 +5,7 @@
   "author": "",
   "main": "index.js",
   "dependencies": {
+    "async-lock": "~1.2.0",
     "cookie-parser": "~1.4.3",
     "debug": "~2.6.9",
     "express": "~4.16.0",

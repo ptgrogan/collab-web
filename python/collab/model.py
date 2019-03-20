@@ -59,7 +59,7 @@ class Session(object):
         # 4x4 pair: 257s --> 350s --> 5 min
 
         rounds = [
-            Round.generate(name='Flat Sleep (Indivdiual)', size=2, assignments=[[0],[1],[2],[3]], random=random),
+            Round.generate(name='Flat Sleep (Individual)', size=2, assignments=[[0],[1],[2],[3]], random=random),
             Round.generate(name='Economic Motion (Individual)', size=2, assignments=[[0],[1],[2],[3]], random=random),
             Round.generate(name='Unwritten Experience (Individual)', size=3, assignments=[[0],[1],[2],[3]], random=random),
             Round.generate(name='Noiseless Stone (Individual)', size=3, assignments=[[0],[1],[2],[3]], random=random),
@@ -83,7 +83,7 @@ class Session(object):
         random.shuffle(rounds)
 
         return Session(
-            name = 'experiment{:03d}'.format(seed),
+            name = 'experiment{:03d}'.format(seed+1),
             num_designers = 4,
             error_tol = errTolerance,
             training = [
@@ -91,7 +91,7 @@ class Session(object):
                 Round.generate(name='Training Task 2/5 (Individual)', size=2, assignments=[[0],[1],[2],[3]], random=random),
                 Round.generate(name='Training Task 3/5 (Pair)', size=2, assignments=[[0,1],[2,3]], random=random),
                 Round.generate(name='Training Task 4/5 (Pair)', size=3, assignments=[[0,1],[2,3]], random=random),
-                Round.generate(name='Training Task 4/5 (Pair)', size=3, assignments=[[1,0],[3,2]], random=random)
+                Round.generate(name='Training Task 5/5 (Pair)', size=3, assignments=[[1,0],[3,2]], random=random)
             ],
             rounds = rounds
         )
@@ -100,17 +100,21 @@ class Round(object):
     """
     An experimental round with a set of technical tasks.
     """
-    def __init__(self, name, tasks):
+    def __init__(self, name, assignments, tasks):
         """
         Initializes this round.
 
         @param name: the name
         @type name: str
 
+        @param assignments: the task assignments: list of lists of designers
+        @type assignments: list(list(int))
+
         @param tasks: the technical tasks
         @type array(Task)
         """
         self.name = name
+        self.assignments = assignments
         self.tasks = tasks
 
         # self.time = 0 # set by post-processor
@@ -120,6 +124,7 @@ class Round(object):
     def generate(name, size, assignments, is_coupled=True, random=np.random):
         return Round(
             name = name,
+            assignments = assignments,
             tasks = [Task.generate(designers, size, is_coupled=is_coupled, random=random) for designers in assignments]
         )
 
@@ -127,12 +132,18 @@ class Task(object):
     """
     An experimental task.
     """
-    def __init__(self, designers, coupling, target, inputs, outputs):
+    def __init__(self, designers, num_inputs, num_outputs, coupling, target, inputs, outputs):
         """
         Initializes this task.
 
         @param designers: the designers asigned to this problem
         @type designers: list(int)
+
+        @param num_inputs: the number of inputs per designer
+        @type num_inputs: list(int)
+
+        @param num_outputs: the number of outputs per designer
+        @type num_outputs: list(int)
 
         @param coupling: the coupling matrix (M)
         @type coupling: list(float)
@@ -147,6 +158,8 @@ class Task(object):
         @type outputs: list(int)
         """
         self.designers = designers
+        self.num_inputs = num_inputs
+        self.num_outputs = num_outputs
         self.coupling = coupling
         self.target = target
         self.inputs = inputs
@@ -316,9 +329,11 @@ class Task(object):
         if inputs is None:
             # try to assign equally among designers
             inputs = [designers[int(i//(size/len(designers)))] for i in range(size)]
+        num_inputs = [np.sum(np.array(inputs) == designer).item() for designer in designers];
         if outputs is None:
             # try to assign equally among designers
             outputs = [designers[int(i//(size/len(designers)))] for i in range(size)]
+        num_outputs = [np.sum(np.array(outputs) == designer).item() for designer in designers];
 
         coupling = np.zeros((size, size))
         if is_coupled:
@@ -330,12 +345,12 @@ class Task(object):
 
         # find a target with no solution values "close" to initial condition
         solution = np.zeros(size)
-        while any(abs(solution) <= 0.20):
+        while np.any(np.abs(solution) <= 0.20):
             target = orth(2*random.rand(size,1)-1)
             # solve using dot product of coupling transpose and target
             solution = np.dot(coupling.T, target)
 
-        return Task(designers, coupling.tolist(), target[:,0].tolist(), inputs, outputs)
+        return Task(designers, num_inputs, num_outputs, coupling.tolist(), target[:,0].tolist(), inputs, outputs)
 
 class Action(object):
     """

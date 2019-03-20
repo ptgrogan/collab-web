@@ -8,97 +8,112 @@
  */
 
  $(function() {
-  var task, errorChart;
+  var round;
+  var errorChart;
 
   var socket = io.connect();
-  socket.on('connect', function(data) {
-      socket.emit('join-admin', "test");
-      socket.emit('task', $('#taskSelect')[0].selectedIndex);
+  socket.on('connect', function() {
+      socket.emit('register-admin');
   });
-  socket.on('task', function(data) {
-    update_task(data);
+  socket.on('round-updated', function(new_round) {
+    round = new_round;
+    update_round(new_round);
   });
-  socket.on('design-y', function(data) {
-    update_y(data);
-  });
-  socket.on('design-x', function(data) {
-    update_x(data);
-  });
-  socket.on('broadcast', function(data) {
-    $('#broadcastCheck').prop('checked', data);
+  socket.on('task-updated', function(new_task) {
+    update_task(round, new_task);
   });
 
   $('#taskSelect').change(function() {
-    socket.emit('task', $('#taskSelect')[0].selectedIndex);
-  });
-  $('#broadcastCheck').change(function() {
-    socket.emit('broadcast', $(this).prop('checked'));
+    socket.emit('next-round');
+    // socket.emit('task', $('#taskSelect')[0].selectedIndex);
   });
 
-  var inputs = [];
-  var outputs = [];
-  var status = [];
+  var inputs = [[]];
+  var outputs = [[]];
+  var status = [[]];
 
-  var update_task = function(data) {
-    task = data;
-    for(i = 0; i < outputs.length; i++) {
-      if(outputs[i]) {
-        outputs[i].noUiSlider.destroy();
+  function update_round(round) {
+    for(var i = 0; i < outputs.length; i++) {
+      for(var j = 0; j < outputs[i].length; j++) {
+        if(outputs[i][j]) {
+          outputs[i][j].noUiSlider.destroy();
+        }
       }
     }
-    outputs = new Array(task.outputs.flat().length);
-    status = new Array(task.outputs.flat().length);
+    outputs = new Array(round.tasks.length);
+    status = new Array(round.tasks.length);
     $(".container-outputs").empty();
-    for(i = 0; i < task.outputs.flat().length; i++) {
-      y_i = i;
-      $(".container-outputs").append('<div class="row my-3"><div class="col-1 text-center"><label for="y'+(y_i+1)+'">Y<sub>'+(y_i+1)+'</sub></label></div><div class="col-10"><div id="y'+(y_i+1)+'" disabled style="width:100%"></div></div><div class="col-1"><span id="y'+(y_i+1)+'s" class="alert alert-danger oi oi-x" aria-hidden="true"></div></div>');
-      outputs[i] = $('#y'+(y_i+1))[0];
-      status[i] = $('#y'+(y_i+1)+'s');
-      noUiSlider.create(outputs[i], {
-          start: 0,
-          behavior: 'none',
-          range: { 'min': -1.25, 'max': 1.25 },
-          pips: {
-              mode: 'values',
-              values: [task.target[y_i]-0.05, task.target[y_i]+0.05],
-              density: -1,
-              format: { to: function(value) { return ""; } }
-          }
-      });
-    }
-    for(i = 0; i < inputs.length; i++) {
-      if(inputs[i]) {
-        inputs[i].noUiSlider.destroy();
+    var idx = 0;
+    for(var i = 0; i < round.tasks.length; i++) {
+      outputs[i] = new Array(round.tasks[i].outputs.length);
+      status[i] = new Array(round.tasks[i].outputs.length);
+      for(var j = 0; j < round.tasks[i].outputs.length; j++) {
+        $(".container-outputs").append('<div class="row my-3"><div class="col-1 text-center"><label for="y'+(idx+1)+'">Y<sub>'+(idx+1)+'</sub></label></div><div class="col-10"><div id="y'+(idx+1)+'" disabled style="width:100%"></div></div><div class="col-1"><span id="y'+(idx+1)+'s" class="alert alert-danger oi oi-x" aria-hidden="true"></div></div>');
+        outputs[i][j] = $('#y'+(idx+1))[0];
+        status[i][j] = $('#y'+(idx+1)+'s');
+        noUiSlider.create(outputs[i][j], {
+            start: 0,
+            behavior: 'none',
+            range: { 'min': -1.25, 'max': 1.25 },
+            pips: {
+                mode: 'values',
+                values: [round.tasks[i].target[j]-0.05, round.tasks[i].target[j]+0.05],
+                density: -1,
+                format: { to: function(value) { return ""; } }
+            }
+        });
+        idx++;
       }
     }
-    inputs = new Array(task.inputs.length);
+    for(var i = 0; i < inputs.length; i++) {
+      for(var j = 0; j < inputs[i].length; j++) {
+        if(inputs[i][j]) {
+          inputs[i][j].noUiSlider.destroy();
+        }
+      }
+    }
+    inputs = new Array(round.tasks.length);
+    $(".row-inputs").empty();
+    idx = 0;
+    for(i = 0; i < round.tasks.length; i++) {
+      inputs[i] = new Array(round.tasks[i].inputs.length);
+      for(var j = 0; j < round.tasks[i].inputs.length; j++) {
+        $(".row-inputs").append('<div class="col-2"><div class="card"><div class="card-header text-center"><label for="x"'+(idx+1)+'>X<sub>'+(idx+1)+'</sub></label></div><div class="card-body"><div id="x'+(idx+1)+'" class="mx-auto" disabled style="height:300px;"></div></div></div></div>');
+        inputs[i][j] = $('#x'+(idx+1))[0];
+        noUiSlider.create(inputs[i][j], {
+            start: 0,
+            orientation: 'vertical',
+            range: { 'min': -1, 'max': 1 }
+        });
+        idx++;
+      }
+    }
     if(errorChart) {
       errorChart.destroy();
     }
-    $(".row-inputs").empty();
-    for(i = 0; i < task.inputs.flat().length; i++) {
-      x_i = i;
-      $(".row-inputs").append('<div class="col-2"><div class="card"><div class="card-header text-center"><label for="x"'+(x_i+1)+'>X<sub>'+(x_i+1)+'</sub></label></div><div class="card-body"><div id="x'+(x_i+1)+'" class="mx-auto" disabled style="height:300px;"></div></div></div></div>');
-      inputs[i] = $('#x'+(x_i+1))[0];
-      noUiSlider.create(inputs[i], {
-          start: 0,
-          orientation: 'vertical',
-          range: { 'min': -1, 'max': 1 }
-      });
-    }
     $(".row-inputs").append('<div class="col-12"><div class="card"><div class="card-header text-center">Error</div><div class="card-body"><canvas id="errorChart" height="200px"></canvas></div></div></div>');
+
+    var colors = [
+      'rgba(255, 99, 132, 1)',
+      'rgba(54, 162, 235, 1)',
+      'rgba(255, 206, 86, 1)',
+      'rgba(75, 192, 192, 1)',
+      'rgba(153, 102, 255, 1)',
+      'rgba(255, 159, 64, 1)'
+    ];
 
     errorChart = new Chart($("#errorChart")[0], {
       type: 'line',
       data: {
-        datasets: [{
-          label: 'Error',
+        datasets: round.tasks.map(function(task) {return {
+          label: 'Designer' + (task.designers.length>1?'s ':' ') + task.designers.map(function(designer) { return designer+1; }).join(', '),
           lineTension: 0,
-          fill: false
-        }]
+          fill: false,
+          backgroundColor: colors[round.tasks.indexOf(task) % colors.length]
+        }})
       },
       options: {
-        legend: { display: false },
+        legend: { display: true },
         scales: {
           xAxes: [{
             type: 'time'
@@ -109,39 +124,38 @@
         }
       }
     });
-    update_y(new Array(task.target.length).fill(0));
+    for(var i = 0; i < round.tasks.length; i++) {
+      update_task(round, round.tasks[i]);
+    }
   };
-  var update_x = function(x) {
-    for(i = 0; i < x.length; i++) {
-      inputs[i].noUiSlider.set(x[i]);
+
+  function update_task(round, task) {
+    if(!task.x) {
+      task.x = new Array(task.inputs.length).fill(0)
     }
-  }
-  var update_y = function(y) {
-    var is_new = false;
-    for(i = 0; i < y.length; i++) {
-      if(y[i] != outputs[i].noUiSlider.get()) {
-        is_new = true;
-      }
+    if(!task.y) {
+      task.y = new Array(task.outputs.length).fill(0)
     }
-    if(!is_new) {
-      return;
+    var idx = round.tasks.indexOf(task);
+    for(var i = 0; i < task.inputs.length; i++) {
+      inputs[idx][i].noUiSlider.set(task.x[i]);
     }
-    for(i = 0; i < y.length; i++) {
-      outputs[i].noUiSlider.set(y[i]);
-      if(math.abs(y[i]-task.target[i]) <= 0.05) {
-          status[i].removeClass('alert-danger');
-          status[i].removeClass('oi-x');
-          status[i].addClass('alert-success');
-          status[i].addClass('oi-check');
+    for(var i = 0; i < task.outputs.length; i++) {
+      outputs[idx][i].noUiSlider.set(task.y[i]);
+      if(math.abs(task.y[i] - task.target[i]) <= 0.05) {
+          status[idx][i].removeClass('alert-danger');
+          status[idx][i].removeClass('oi-x');
+          status[idx][i].addClass('alert-success');
+          status[idx][i].addClass('oi-check');
       } else {
-          status[i].removeClass('alert-success');
-          status[i].removeClass('oi-check');
-          status[i].addClass('alert-danger');
-          status[i].addClass('oi-x');
+          status[idx][i].removeClass('alert-success');
+          status[idx][i].removeClass('oi-check');
+          status[idx][i].addClass('alert-danger');
+          status[idx][i].addClass('oi-x');
       }
     }
-    var error = math.norm(math.subtract(task.target, y));
-    errorChart.data.datasets[0].data.push({x: Date.now(), y: error});
+    var error = math.norm(math.subtract(task.target, task.y));
+    errorChart.data.datasets[idx].data.push({x: Date.now(), y: error});
     errorChart.update();
   };
 });
