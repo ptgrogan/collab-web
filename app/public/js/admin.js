@@ -32,11 +32,19 @@
       $('#roundSelect').append($('<option></option>').attr('value', value).text(value));
     });
   });
+  socket.on('round-completed', function(data) {
+    $('#nextRound').removeClass('btn-outline-secondary');
+    $('#nextRound').addClass('btn-primary');
+  });
 
   $('#roundSelect').change(function() {
+    $('#nextRound').removeClass('btn-primary');
+    $('#nextRound').addClass('btn-outline-secondary');
     socket.emit('set-round', $('#roundSelect').val());
   });
   $('#nextRound').click(function() {
+    $('#nextRound').removeClass('btn-primary');
+    $('#nextRound').addClass('btn-outline-secondary');
     socket.emit('next-round');
   });
 
