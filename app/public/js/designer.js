@@ -22,10 +22,10 @@ $(function() {
     round = new_round;
     update_round(new_round);
   });
-  socket.on('task-updated', function(new_task) {
-    update_task(round, new_task);
+  socket.on('y-updated', function(y) {
+    update_task(y);
   });
-  socket.on('task-complete', function(data) {
+  socket.on('task-completed', function(data) {
     for(i = 0; i < inputs.length; i++) {
       inputs[i].setAttribute('disabled', true);
     }
@@ -70,7 +70,7 @@ $(function() {
     inputs = new Array(round.num_inputs);
     $(".row-inputs").empty();
     for(i = 0; i < round.num_inputs; i++) {
-      $(".row-inputs").append('<div class="col-2"><div class="text-center pb-3"><label for="x"'+(i+1)+'>X<sub>'+(i+1)+'</sub></label></div><div id="x'+(i+1)+'" class="mx-auto" style="height:300px;"></div></div>');
+      $(".row-inputs").append('<div class="col-1"><div class="text-center pb-3"><label for="x"'+(i+1)+'>X<sub>'+(i+1)+'</sub></label></div><div id="x'+(i+1)+'" class="mx-auto" style="height:300px;"></div></div>');
       inputs[i] = $('#x'+(i+1))[0];
       noUiSlider.create(inputs[i], {
           start: 0,
@@ -83,22 +83,31 @@ $(function() {
       });
     }
 
-    update_task(round, new Array(round.num_outputs).fill(0));
+    update_task(new Array(round.num_outputs).fill(0));
   };
 
-  function update_task(round, task) {
-    for(i = 0; i < task.length; i++) {
-      outputs[i].noUiSlider.set(task[i]);
-      if(math.abs(task[i]-round.target[i]) <= 0.05) {
-          status[i].removeClass('alert-danger');
-          status[i].removeClass('oi-x');
-          status[i].addClass('alert-success');
-          status[i].addClass('oi-check');
+  function update_task(y) {
+    for(i = 0; i < y.length; i++) {
+      outputs[i].noUiSlider.set(y[i]);
+      status[i].removeClass('alert-success');
+      status[i].removeClass('alert-secondary');
+      status[i].removeClass('alert-danger');
+      status[i].removeClass('oi-check');
+      status[i].removeClass('oi-chevron-left');
+      status[i].removeClass('oi-chevron-right');
+      status[i].removeClass('oi-x');
+      if(math.abs(y[i]-round.target[i]) <= 0.05) {
+        status[i].addClass('alert-success');
+        status[i].addClass('oi-check');
+      } else if(y[i] < -1.25) {
+        status[i].addClass('alert-secondary');
+        status[i].addClass('oi-chevron-left');
+      } else if(y[i] > 1.25) {
+        status[i].addClass('alert-secondary');
+        status[i].addClass('oi-chevron-right');
       } else {
-          status[i].removeClass('alert-success');
-          status[i].removeClass('oi-check');
-          status[i].addClass('alert-danger');
-          status[i].addClass('oi-x');
+        status[i].addClass('alert-danger');
+        status[i].addClass('oi-x');
       }
     }
   };

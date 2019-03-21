@@ -159,6 +159,10 @@ module.exports = function(io) {
       if(admin === null) {
         admin = client;
       }
+      client.emit('session-loaded', {
+        'training': session.training.map(round => round.name),
+        'rounds': session.rounds.map(round => round.name)
+      });
       client.emit('round-updated', round);
     });
 
@@ -174,8 +178,8 @@ module.exports = function(io) {
       const task = getDesignerTask(designerIdx);
       client.emit('round-updated', {
         'name': round.name,
-        'num_inputs': task.num_inputs,
-        'num_outputs': task.num_outputs,
+        'num_inputs': task.num_inputs[task.designers.indexOf(designerIdx)],
+        'num_outputs': task.num_outputs[task.designers.indexOf(designerIdx)],
         'target': getDesignerTarget(designerIdx)
       });
     });
@@ -218,8 +222,8 @@ module.exports = function(io) {
           const task = getDesignerTask(i);
           designers[i].emit('round-updated', {
             'name': round.name,
-            'num_inputs': task.num_inputs[task.designers.indexOf[i]],
-            'num_outputs': task.num_outputs[task.designers.indexOf[i]],
+            'num_inputs': task.num_inputs[task.designers.indexOf(i)],
+            'num_outputs': task.num_outputs[task.designers.indexOf(i)],
             'target': getDesignerTarget(i)
           });
         }

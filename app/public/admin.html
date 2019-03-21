@@ -21,50 +21,20 @@
         <div class="col-8">
           <div class="input-group">
             <div class="input-group-prepend">
-              <span class="input-group-text">Task</span>
+              <span class="input-group-text">Round</span>
             </div>
-            <select class="form-control" id="taskSelect">
-              <option>Training #1 (1x1 U Solo)</option>
-              <option>Training #2 (2x2 U Solo)</option>
-              <option>Training #3 (2x2 C Solo)</option>
-              <option>Training #4 (3x3 U Triad)</option>
-              <option>Training #5 (3x3 C Triad)</option>
-              <option>Breezy Rain (3x3 U Solo)</option>
-              <option>Wistful Act (2x2 C Pair)</option>
-              <option>Onerous Effect (3x3 U Pair)</option>
-              <option>Hard Development (3x3 U Pair)</option>
-              <option>Better Behavior (3x3 C Pair)</option>
-              <option>Unwritten Experience (2x2 C Pair)</option>
-              <option>Hallowed Sign (2x2 C Solo)</option>
-              <option>Husky Verse (2x2 C Solo)</option>
-              <option>Economic Motion (3x3 C Triad)</option>
-              <option>Arrogant Flame (3x3 C Pair)</option>
-              <option>Absorbed Copper (4x4 C Pair)</option>
-              <option>Staking System (3x3 U Triad)</option>
-              <option>Thinkable Ink (6x6 U Solo)</option>
-              <option>Murky Mass (2x2 C Pair)</option>
-              <option>Brainy Damage (4x4 C Solo)</option>
-              <option>Flat Sleep (3x3 C Solo)</option>
-              <option>Befitting Plant (3x3 C Pair)</option>
-              <option>Noiseless Stone (4x4 C Triad)</option>
-              <option>Alert Burst (3x3 U Pair)</option>
-              <option>Statuesque Name (3x3 C Solo)</option>
-              <option>Wide Growth (6x6 U Triad)</option>
-              <option>Towering Test (3x3 U Triad)</option>
-              <option>Chief Government (4x4 U Solo)</option>
-              <option>Silky Waste (4x4 C Solo)</option>
-            </select>
+            <select class="form-control" id="roundSelect"></select>
           </div>
         </div>
         <div class="col-4">
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" id="broadcastCheck"  data-onstyle="secondary" data-toggle="toggle" data-style="mr-1">
-             <label class="form-check-label" for="broadcastCheck">Broadcast</label>
+          <div class="form-inline">
+            <button class="btn btn-outline-secondary mb-2" id="nextRound"><span class="oi oi-chevron-right" aria-hidden="true"></span> Next</button>
           </div>
         </div>
       </div>
       <div class="container container-outputs"></div>
-      <div class="container"><div class="row row-inputs"></div></div>
+      <div class="container mb-4"><div class="row row-inputs justify-content-center align-items-center"></div></div>
+      <div class="container"><div class="row row-error"></div></div>
     </main>
 
     <footer class="site-footer bg-light text-center border-top border-dark">

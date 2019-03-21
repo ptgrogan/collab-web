@@ -17,15 +17,27 @@
   });
   socket.on('round-updated', function(new_round) {
     round = new_round;
+    $('#roundSelect').val(round.name);
     update_round(new_round);
   });
   socket.on('task-updated', function(new_task) {
-    update_task(round, new_task);
+    update_task(new_task);
+  });
+  socket.on('session-loaded', function(data) {
+    $('#roundSelect').empty();
+    $.each(data.training, function(key, value) {
+      $('#roundSelect').append($('<option></option>').attr('value', value).text(value));
+    });
+    $.each(data.rounds, function(key, value) {
+      $('#roundSelect').append($('<option></option>').attr('value', value).text(value));
+    });
   });
 
-  $('#taskSelect').change(function() {
+  $('#roundSelect').change(function() {
+    socket.emit('set-round', $('#roundSelect').val());
+  });
+  $('#nextRound').click(function() {
     socket.emit('next-round');
-    // socket.emit('task', $('#taskSelect')[0].selectedIndex);
   });
 
   var inputs = [[]];
@@ -78,7 +90,7 @@
     for(i = 0; i < round.tasks.length; i++) {
       inputs[i] = new Array(round.tasks[i].inputs.length);
       for(var j = 0; j < round.tasks[i].inputs.length; j++) {
-        $(".row-inputs").append('<div class="col-2"><div class="card"><div class="card-header text-center"><label for="x"'+(idx+1)+'>X<sub>'+(idx+1)+'</sub></label></div><div class="card-body"><div id="x'+(idx+1)+'" class="mx-auto" disabled style="height:300px;"></div></div></div></div>');
+        $(".row-inputs").append('<div class="col-1"><div class="text-center pb-3"><label for="x"'+(idx+1)+'>X<sub>'+(idx+1)+'</sub></label></div><div id="x'+(idx+1)+'" class="mx-auto" disabled style="height:300px;"></div></div>');
         inputs[i][j] = $('#x'+(idx+1))[0];
         noUiSlider.create(inputs[i][j], {
             start: 0,
@@ -91,7 +103,7 @@
     if(errorChart) {
       errorChart.destroy();
     }
-    $(".row-inputs").append('<div class="col-12"><div class="card"><div class="card-header text-center">Error</div><div class="card-body"><canvas id="errorChart" height="200px"></canvas></div></div></div>');
+    $(".row-error").append('<div class="col-12"><canvas id="errorChart" height="200px"></canvas></div>');
 
     var colors = [
       'rgba(255, 99, 132, 1)',
@@ -125,33 +137,42 @@
       }
     });
     for(var i = 0; i < round.tasks.length; i++) {
-      update_task(round, round.tasks[i]);
+      update_task(round.tasks[i]);
     }
   };
 
-  function update_task(round, task) {
+  function update_task(task) {
     if(!task.x) {
       task.x = new Array(task.inputs.length).fill(0)
     }
     if(!task.y) {
       task.y = new Array(task.outputs.length).fill(0)
     }
-    var idx = round.tasks.indexOf(task);
+    var idx = round.tasks.map(function(task) { return task.designers.join(); }).indexOf(task.designers.join());
     for(var i = 0; i < task.inputs.length; i++) {
       inputs[idx][i].noUiSlider.set(task.x[i]);
     }
     for(var i = 0; i < task.outputs.length; i++) {
       outputs[idx][i].noUiSlider.set(task.y[i]);
+      status[idx][i].removeClass('alert-success');
+      status[idx][i].removeClass('alert-secondary');
+      status[idx][i].removeClass('alert-danger');
+      status[idx][i].removeClass('oi-check');
+      status[idx][i].removeClass('oi-chevron-left');
+      status[idx][i].removeClass('oi-chevron-right');
+      status[idx][i].removeClass('oi-x');
       if(math.abs(task.y[i] - task.target[i]) <= 0.05) {
-          status[idx][i].removeClass('alert-danger');
-          status[idx][i].removeClass('oi-x');
-          status[idx][i].addClass('alert-success');
-          status[idx][i].addClass('oi-check');
+        status[idx][i].addClass('alert-success');
+        status[idx][i].addClass('oi-check');
+      } else if(task.y[i] < -1.25) {
+        status[idx][i].addClass('alert-secondary');
+        status[idx][i].addClass('oi-chevron-left');
+      } else if(task.y[i] > 1.25) {
+        status[idx][i].addClass('alert-secondary');
+        status[idx][i].addClass('oi-chevron-right');
       } else {
-          status[idx][i].removeClass('alert-success');
-          status[idx][i].removeClass('oi-check');
-          status[idx][i].addClass('alert-danger');
-          status[idx][i].addClass('oi-x');
+        status[idx][i].addClass('alert-danger');
+        status[idx][i].addClass('oi-x');
       }
     }
     var error = math.norm(math.subtract(task.target, task.y));
