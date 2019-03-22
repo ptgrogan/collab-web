@@ -12,6 +12,10 @@ module.exports = function(io) {
   }
 
   let designers = []; // list of current designers
+  let time_start = []; // list of starting times
+  let time_complete = []; // list of time task complete
+  let scores_training = [[]]; // list of training scores
+  let scores = [[]]; // list of scores
   let admin = null; // current administrator
 
   let session = null; // shared state variable: be careful of concurrent modification
@@ -34,6 +38,13 @@ module.exports = function(io) {
           designers.pop().disconnect();
         }
       }
+      // reset scores
+      scores_training = new Array(session.num_designers);
+      scores = new Array(session.num_designers);
+      for(let i = 0; i < session.num_designers; i++) {
+        scores_training[i] = new Array(session.training.length).fill(null);
+        scores[i] = new Array(session.rounds.length).fill(null)
+      }
       log('load', session.name);
       done();
     }, function() {
@@ -49,6 +60,8 @@ module.exports = function(io) {
            round.tasks[i].solution = math.multiply(math.transpose(round.tasks[i].coupling), round.tasks[i].target);
         }
       }
+      time_start = new Array(round.tasks.length).fill(null);
+      time_complete = new Array(round.tasks.length).fill(null);
       log('round', round.name);
       done();
     }, function() {});
@@ -82,10 +95,26 @@ module.exports = function(io) {
     }
   }
 
+  function updateScores() {
+    for(let i = 0; i < round.tasks.length; i++) {
+      for(let j = 0; j < round.tasks[i].designers.length; j++) {
+        const time_stamp = new Date().getTime();
+        const score = (round.is_complete ? Math.max(time_complete) : time_stamp)
+            - (time_start[round.tasks[i].designers[j]] ? time_start[round.tasks[i].designers[j]] : time_stamp);
+        if(session.training.includes(round)) {
+          scores_training[round.tasks[i].designers[j]][session.training.indexOf(round)] = score;
+        } else if(session.rounds.includes(round)) {
+          scores[round.tasks[i].designers[j]][session.rounds.indexOf(round)] = score;
+        }
+      }
+    }
+  }
+
   function updateDesignerX(designerIdx, x) {
     lock.acquire('key', function(done) {
       log('action', {'designer': designerIdx, 'x': x});
       const task = getDesignerTask(designerIdx);
+      const time_stamp = new Date().getTime();
       if(!task) {
         return;
       }
@@ -100,8 +129,17 @@ module.exports = function(io) {
         }
       }
       task.y = math.multiply(task.coupling, task.x);
+      for(let i = 0; i < task.designers.length; i++) {
+        if(!time_start[task.designers[i]]) {
+          time_start[task.designers[i]] = time_stamp;
+        }
+      }
+
       if([...Array(task.y.length).keys()].every(i => Math.abs(task.y[i] - task.target[i]) <= session.error_tol)) {
         task.is_complete = true;
+        for(let i = 0; i < task.designers.length; i++) {
+          time_complete[task.designers[i]] = time_stamp;
+        }
         log('complete', task);
       } else {
         task.is_complete = false;
@@ -109,6 +147,7 @@ module.exports = function(io) {
 
       if(round.tasks.every(i => i.is_complete)) {
         round.is_complete = true;
+        updateScores(round);
         log('complete', round.name);
       } else {
         round.is_complete = false;
@@ -184,6 +223,29 @@ module.exports = function(io) {
       });
     });
 
+    function scoreRound() {
+      updateScores();
+      if(session.training.includes(round)) {
+        if(admin) {
+          admin.emit('score-updated', {'scores': scores_training, 'totals': scores_training.map(score => score.reduce((total, sum) => total + sum))});
+        }
+        for(let i = 0; i < designers.length; i++) {
+          if(designers[i]) {
+            designers[i].emit('score-updated', {'scores': scores_training[i], 'score': scores_training[i][session.training.indexOf(round)], 'total': scores_training[i].reduce((total, sum) => total + sum)});
+          }
+        }
+      } else if(session.rounds.includes(round)) {
+        if(admin) {
+          admin.emit('score-updated', {'scores': scores, 'totals': scores.map(score => score.reduce((total, sum) => total + sum))});
+        }
+        for(let i = 0; i < designers.length; i++) {
+          if(designers[i]) {
+            designers[i].emit('score-updated', {'scores': scores[i], 'score': scores[i][session.rounds.indexOf(round)], 'total': scores[i].reduce((total, sum) => total + sum)});
+          }
+        }
+      }
+    }
+
     function updateTask(task) {
       // update outputs for all designers in same task
       for(let i = 0; i < task.designers.length; i++) {
@@ -198,9 +260,12 @@ module.exports = function(io) {
       // update inputs/outputs for admin
       if(admin) {
         admin.emit('task-updated', task);
-        if(round.is_complete) {
+      }
+      if(round.is_complete) {
+        if(admin) {
           admin.emit('round-completed');
         }
+        scoreRound();
       }
     }
 
@@ -238,6 +303,10 @@ module.exports = function(io) {
     client.on('next-round', () => {
       nextRound();
       updateRound();
+    });
+
+    client.on('score-round', () => {
+      scoreRound();
     });
 
     client.on('disconnect', () => {

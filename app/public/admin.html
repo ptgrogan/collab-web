@@ -18,19 +18,21 @@
   <body>
     <main role="main" class="container my-3 border-left border-right border-light">
       <div class="row form-group">
-        <div class="col-8">
-          <div class="input-group">
+        <div class="col-4">
+          <div class="input-group m-2">
             <div class="input-group-prepend">
               <span class="input-group-text">Round</span>
             </div>
             <select class="form-control" id="roundSelect"></select>
           </div>
         </div>
-        <div class="col-4">
+        <div class="col-3">
           <div class="form-inline">
-            <button class="btn btn-outline-secondary mb-2" id="nextRound"><span class="oi oi-chevron-right" aria-hidden="true"></span> Next</button>
+            <button class="btn btn-outline-secondary m-2" id="scoreRound"><span class="oi oi-badge" aria-hidden="true"></span> Score</button>
+            <button class="btn btn-outline-secondary m-2" id="nextRound"><span class="oi oi-chevron-right" aria-hidden="true"></span> Next</button>
           </div>
         </div>
+        <div class="col-5 alert alert-secondary row" id="scorePopover"></div>
       </div>
       <div class="container container-outputs"></div>
       <div class="container mb-4"><div class="row row-inputs justify-content-center align-items-center"></div></div>

@@ -31,6 +31,27 @@ $(function() {
     }
     audio[Math.random() < 0.5 ? 0 : 1].play();
   });
+  socket.on('score-updated', function(data) {
+    $('#score').text(Math.round(data.total/1000) + ' (+' + Math.round(data.score/1000) + ')');
+    $('#scorePopover').attr('data-content', buildPopperTable(data.scores, data.total));
+  });
+
+  function buildPopperTable(scores, total) {
+    var html = '<table class="table table-striped"><thead class="thead-dark"><tr><th>Round</th><th>Points</th><tr></thead><tbody>';
+    for(var i = 0; i < scores.length; i++) {
+      html += '<tr><td>' + (i+1) + '</td><td>' + (scores[i] ? Math.round(scores[i]/1000) : 'n/a') + '</td></tr>';
+    }
+    html += '<tr><td>Total</td><td>' + Math.round(total/1000) + '</td></tr>';
+    html += '</tbody></table>';
+    return html;
+  }
+
+  $('#scorePopover').popover({
+    trigger: 'hover',
+    html: true,
+    content: buildPopperTable([], 0),
+    placement: 'bottom'
+  });
 
   var inputs = [];
   var outputs = [];

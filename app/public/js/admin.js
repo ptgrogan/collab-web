@@ -47,6 +47,48 @@
     $('#nextRound').addClass('btn-outline-secondary');
     socket.emit('next-round');
   });
+  $('#scoreRound').click(function() {
+    socket.emit('score-round');
+  });
+  socket.on('score-updated', function(data) {
+    $('#scorePopover').empty();
+    var totals = new Array(data.scores.length).fill(0);
+    for(var i = 0; i < data.scores.length; i++) {
+      $('#scorePopover').append('<div class="col-' + Math.floor(12/data.scores.length) + '"><div class="badge badge-secondary"><span class="oi oi-person" aria-hidden="true"></span> ' + (i+1) + '</div> ' + Math.round(data.totals[i]/1000) + '</div>');
+    }
+    $('#scorePopover').attr('data-content', buildPopperTable(data.scores, data.totals));
+  });
+
+  function buildPopperTable(scores, totals) {
+    var html = '<table class="table table-striped"><thead class="thead-dark"><tr><th>Round</th>'
+    for(var i = 0; i < scores.length; i++) {
+      html += '<th>D&nbsp;' + (i+1) + '</th>';
+    }
+    html += '<tr></thead><tbody>';
+    if(scores.length > 0) {
+      for(var i = 0; i < scores[0].length; i++) {
+        html += '<tr><td>' + (i+1) + '</td>';
+        for(var j = 0; j < scores.length; j++) {
+          html += '<td>' + (scores[j][i] ? Math.round(scores[j][i]/1000) : 'n/a') + '</td>';
+        }
+        html += '</tr>';
+      }
+    }
+    html += '<tr><td>Total</td>'
+    for(var i = 0; i < totals.length; i++) {
+      html += '<td>' + Math.round(totals[i]/1000) + '</td>';
+    }
+    html += '</tr></tbody></table>';
+    return html;
+  }
+
+  $('#scorePopover').popover({
+    trigger: 'hover',
+    html: true,
+    container: 'body',
+    content: buildPopperTable([], []),
+    placement: 'bottom'
+  });
 
   var inputs = [[]];
   var outputs = [[]];
