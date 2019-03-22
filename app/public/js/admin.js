@@ -145,6 +145,7 @@
         noUiSlider.create(inputs[i][j], {
             start: 0,
             orientation: 'vertical',
+            direction: 'rtl',
             range: { 'min': -1, 'max': 1 }
         });
         idx++;

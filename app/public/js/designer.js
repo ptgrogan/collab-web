@@ -28,6 +28,9 @@ $(function() {
   socket.on('task-completed', function(data) {
     for(i = 0; i < inputs.length; i++) {
       inputs[i].setAttribute('disabled', true);
+      for(var j = 0; j < input_buttons[i].length; j++) {
+        input_buttons[i][j].prop('disabled', true);
+      }
     }
     audio[Math.random() < 0.5 ? 0 : 1].play();
   });
@@ -54,6 +57,7 @@ $(function() {
   });
 
   var inputs = [];
+  var input_buttons = [];
   var outputs = [];
   var status = [];
 
@@ -68,7 +72,7 @@ $(function() {
     status = new Array(round.num_outputs);
     $(".container-outputs").empty();
     for(var i = 0; i < round.num_outputs; i++) {
-      $(".container-outputs").append('<div class="row my-3"><div class="col-1 text-center"><label for="y'+(i+1)+'">Y<sub>'+(i+1)+'</sub></label></div><div class="col-10"><div id="y'+(i+1)+'" disabled style="width:100%"></div></div><div class="col-1"><span id="y'+(i+1)+'s" class="alert alert-danger oi oi-x" aria-hidden="true"></div></div>');
+      $(".container-outputs").append('<div class="row my-3"><div class="col-1 text-center"><label for="y'+(i+1)+'">Y<sub>'+(i+1)+'</sub></label></div><div class="col-9"><div id="y'+(i+1)+'" disabled style="width:100%"></div></div><div class="col-2"><span id="y'+(i+1)+'s" class="alert alert-danger oi oi-x" aria-hidden="true"></div></div>');
       outputs[i] = $('#y'+(i+1))[0];
       status[i] = $('#y'+(i+1)+'s');
       noUiSlider.create(outputs[i], {
@@ -89,18 +93,49 @@ $(function() {
       }
     }
     inputs = new Array(round.num_inputs);
+    input_buttons = new Array(round.num_inputs);
     $(".row-inputs").empty();
-    for(i = 0; i < round.num_inputs; i++) {
-      $(".row-inputs").append('<div class="col-1"><div class="text-center pb-3"><label for="x"'+(i+1)+'>X<sub>'+(i+1)+'</sub></label></div><div id="x'+(i+1)+'" class="mx-auto" style="height:300px;"></div></div>');
+    for(var i = 0; i < round.num_inputs; i++) {
+      $(".row-inputs").append('<div class="col-3"><div class="text-center"><label for="x"'+(i+1)+'>X<sub>'+(i+1)+'</sub></label><br /><button id="x'+(i+1)+'-up" class="btn btn-sm btn-outline-secondary"><span class="oi oi-caret-top" aria-hidden="true"></span></button><button id="x'+(i+1)+'-upp" class="btn btn-sm btn-outline-secondary"><span class="oi oi-collapse-up" aria-hidden="true"></span></button><div id="x'+(i+1)+'" class="mx-auto my-3" style="height:300px;"></div><button id="x'+(i+1)+'-dn" class="btn btn-sm btn-outline-secondary"><span class="oi oi-caret-bottom" aria-hidden="true"></span></button><button id="x'+(i+1)+'-dnn" class="btn btn-sm btn-outline-secondary"><span class="oi oi-collapse-down" aria-hidden="true"></span></button></div></div>');
       inputs[i] = $('#x'+(i+1))[0];
+      input_buttons[i] = [$('#x'+(i+1)+'-up'), $('#x'+(i+1)+'-upp'), $('#x'+(i+1)+'-dn'), $('#x'+(i+1)+'-dnn')];
       noUiSlider.create(inputs[i], {
           start: 0,
           orientation: 'vertical',
+          direction: 'rtl',
+          step: 0.01,
           range: { 'min': -1, 'max': 1 }
       });
       inputs[i].noUiSlider.on('set', function() {
         var x = [...new Array(round.num_inputs).keys()].map(function(j) { return inputs[j].noUiSlider.get()});
         socket.emit('update-x', x);
+      });
+      function pushSlider(slider, delta) {
+        return function() {
+          if(!slider.getAttribute('disabled')) {
+            slider.noUiSlider.set(Number(slider.noUiSlider.get()) + delta);
+          }
+        }
+      }
+      $('#x'+(i+1)+'-up').click(pushSlider(inputs[i], 0.01));
+      $('#x'+(i+1)+'-upp').click(pushSlider(inputs[i], 0.1));
+      $('#x'+(i+1)+'-dn').click(pushSlider(inputs[i], -0.01));
+      $('#x'+(i+1)+'-dnn').click(pushSlider(inputs[i], -0.1));
+      inputs[i].addEventListener('keydown', function(e) {
+        switch(e.which) {
+          case 38: // key up
+            pushSlider(this, 0.01)();
+            break;
+          case 33: // page up
+            pushSlider(this, 0.1)();
+            break;
+          case 40: // key down
+            pushSlider(this, -0.01)();
+            break;
+          case 34: // page down
+            pushSlider(this, -0.1)();
+            break;
+        }
       });
     }
 
@@ -108,7 +143,7 @@ $(function() {
   };
 
   function update_task(y) {
-    for(i = 0; i < y.length; i++) {
+    for(var i = 0; i < y.length; i++) {
       outputs[i].noUiSlider.set(y[i]);
       status[i].removeClass('alert-success');
       status[i].removeClass('alert-secondary');
