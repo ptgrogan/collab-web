@@ -69,7 +69,7 @@
       for(var i = 0; i < scores[0].length; i++) {
         html += '<tr><td>' + (i+1) + '</td>';
         for(var j = 0; j < scores.length; j++) {
-          html += '<td>' + (scores[j][i] ? Math.round(scores[j][i]/1000) : '-') + '</td>';
+          html += '<td>' + (scores[j][i] || scores[j][i] === 0 ? Math.round(scores[j][i]/1000) : '-') + '</td>';
         }
         html += '</tr>';
       }

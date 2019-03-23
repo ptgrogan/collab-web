@@ -42,7 +42,7 @@ $(function() {
   function buildPopperTable(scores, total) {
     var html = '<table class="table table-striped"><thead class="thead-dark"><tr><th>Round</th><th>Points</th><tr></thead><tbody>';
     for(var i = 0; i < scores.length; i++) {
-      html += '<tr><td>' + (i+1) + '</td><td>' + (scores[i] ? Math.round(scores[i]/1000) : '-') + '</td></tr>';
+      html += '<tr><td>' + (i+1) + '</td><td>' + (scores[i] || scores[i] === 0 ? Math.round(scores[i]/1000) : '-') + '</td></tr>';
     }
     html += '<tr><td>Total</td><td>' + Math.round(total/1000) + '</td></tr>';
     html += '</tbody></table>';
@@ -79,6 +79,7 @@ $(function() {
           start: 0,
           behavior: 'none',
           range: { 'min': -1.25, 'max': 1.25 },
+          keyboardSupport: false,
           pips: {
               mode: 'values',
               values: [round.target[i]-0.05, round.target[i]+0.05],
@@ -96,7 +97,7 @@ $(function() {
     input_buttons = new Array(round.num_inputs);
     $(".row-inputs").empty();
     for(var i = 0; i < round.num_inputs; i++) {
-      $(".row-inputs").append('<div class="col-3"><div class="text-center"><label for="x"'+(i+1)+'>X<sub>'+(i+1)+'</sub></label><br /><button id="x'+(i+1)+'-up" class="btn btn-sm btn-outline-secondary"><span class="oi oi-caret-top" aria-hidden="true"></span></button><button id="x'+(i+1)+'-upp" class="btn btn-sm btn-outline-secondary"><span class="oi oi-collapse-up" aria-hidden="true"></span></button><div id="x'+(i+1)+'" class="mx-auto my-3" style="height:300px;"></div><button id="x'+(i+1)+'-dn" class="btn btn-sm btn-outline-secondary"><span class="oi oi-caret-bottom" aria-hidden="true"></span></button><button id="x'+(i+1)+'-dnn" class="btn btn-sm btn-outline-secondary"><span class="oi oi-collapse-down" aria-hidden="true"></span></button></div></div>');
+      $(".row-inputs").append('<div class="col-3"><div class="text-center"><label for="x"'+(i+1)+'>X<sub>'+(i+1)+'</sub></label><br /><button id="x'+(i+1)+'-up" class="btn btn-sm btn-outline-secondary" tabindex="-1"><span class="oi oi-caret-top" aria-hidden="true"></span></button><button id="x'+(i+1)+'-upp" class="btn btn-sm btn-outline-secondary" tabindex="-1"><span class="oi oi-collapse-up" aria-hidden="true"></span></button><div id="x'+(i+1)+'" class="mx-auto my-3" style="height:300px;"></div><button id="x'+(i+1)+'-dn" class="btn btn-sm btn-outline-secondary" tabindex="-1"><span class="oi oi-caret-bottom" aria-hidden="true"></span></button><button id="x'+(i+1)+'-dnn" class="btn btn-sm btn-outline-secondary" tabindex="-1"><span class="oi oi-collapse-down" aria-hidden="true"></span></button></div></div>');
       inputs[i] = $('#x'+(i+1))[0];
       input_buttons[i] = [$('#x'+(i+1)+'-up'), $('#x'+(i+1)+'-upp'), $('#x'+(i+1)+'-dn'), $('#x'+(i+1)+'-dnn')];
       noUiSlider.create(inputs[i], {
@@ -106,6 +107,7 @@ $(function() {
           step: 0.01,
           range: { 'min': -1, 'max': 1 }
       });
+      $('#x'+(i+1)).attr('tabindex', (i+1));
       inputs[i].noUiSlider.on('set', function() {
         var x = [...new Array(round.num_inputs).keys()].map(function(j) { return inputs[j].noUiSlider.get()});
         socket.emit('update-x', x);
