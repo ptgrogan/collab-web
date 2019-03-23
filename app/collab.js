@@ -97,10 +97,20 @@ module.exports = function(io) {
 
   function updateScores() {
     const time_stamp = new Date().getTime();
-    const max_duration = [...Array(time_start.length).keys()].reduce((max, i) => Math.max((time_complete[i] ? time_complete[i] : time_stamp) - (time_start[i] ? time_start[i] : time_stamp), max));
+    const durations = new Array(time_complete.length);
+    for(let i = 0; i < durations.length; i++) {
+      if(time_complete[i] && time_start[i]) {
+        durations[i] = time_complete[i] - time_start[i];
+      } else if(time_start[i]) {
+        durations[i] = time_stamp - time_start[i];
+      } else {
+        durations[i] = 0;
+      }
+    }
+    const max_duration = durations.reduce((max, duration) => Math.max(max, duration));
     for(let i = 0; i < round.tasks.length; i++) {
       for(let j = 0; j < round.tasks[i].designers.length; j++) {
-        const score = round.tasks[i].is_complete ? max_duration - (time_complete[i] - time_start[i]) : 0;
+        const score = round.tasks[i].is_complete ? max_duration - durations[round.tasks[i].designers[j]] : 0;
         if(session.training.includes(round)) {
           scores_training[round.tasks[i].designers[j]][session.training.indexOf(round)] = score;
         } else if(session.rounds.includes(round)) {
@@ -219,8 +229,8 @@ module.exports = function(io) {
       const task = getDesignerTask(designerIdx);
       client.emit('round-updated', {
         'name': round.name,
-        'num_inputs': task.num_inputs[task.designers.indexOf(designerIdx)],
-        'num_outputs': task.num_outputs[task.designers.indexOf(designerIdx)],
+        'num_inputs': task ? task.num_inputs[task.designers.indexOf(designerIdx)] : 0,
+        'num_outputs': task ? task.num_outputs[task.designers.indexOf(designerIdx)] : 0,
         'target': getDesignerTarget(designerIdx)
       });
     });
