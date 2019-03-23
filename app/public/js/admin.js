@@ -69,7 +69,7 @@
       for(var i = 0; i < scores[0].length; i++) {
         html += '<tr><td>' + (i+1) + '</td>';
         for(var j = 0; j < scores.length; j++) {
-          html += '<td>' + (scores[j][i] ? Math.round(scores[j][i]/1000) : 'n/a') + '</td>';
+          html += '<td>' + (scores[j][i] ? Math.round(scores[j][i]/1000) : '-') + '</td>';
         }
         html += '</tr>';
       }
@@ -110,7 +110,7 @@
       outputs[i] = new Array(round.tasks[i].outputs.length);
       status[i] = new Array(round.tasks[i].outputs.length);
       for(var j = 0; j < round.tasks[i].outputs.length; j++) {
-        $(".container-outputs").append('<div class="row my-3"><div class="col-1 text-center"><label for="y'+(idx+1)+'">Y<sub>'+(idx+1)+'</sub></label></div><div class="col-10"><div id="y'+(idx+1)+'" disabled style="width:100%"></div></div><div class="col-1"><span id="y'+(idx+1)+'s" class="alert alert-danger oi oi-x" aria-hidden="true"></div></div>');
+        $(".container-outputs").append('<div class="row my-3"><div class="col-1 text-center"><label for="y'+(idx+1)+'">Y<sub>'+(idx+1)+'</sub></label></div><div class="col-9"><div id="y'+(idx+1)+'" disabled style="width:100%"></div></div><div class="col-2"><span id="y'+(idx+1)+'s" class="alert alert-danger oi oi-x" aria-hidden="true"></div></div>');
         outputs[i][j] = $('#y'+(idx+1))[0];
         status[i][j] = $('#y'+(idx+1)+'s');
         noUiSlider.create(outputs[i][j], {

@@ -96,11 +96,11 @@ module.exports = function(io) {
   }
 
   function updateScores() {
+    const time_stamp = new Date().getTime();
+    const max_duration = [...Array(time_start.length).keys()].reduce((max, i) => Math.max((time_complete[i] ? time_complete[i] : time_stamp) - (time_start[i] ? time_start[i] : time_stamp), max));
     for(let i = 0; i < round.tasks.length; i++) {
       for(let j = 0; j < round.tasks[i].designers.length; j++) {
-        const time_stamp = new Date().getTime();
-        const score = (round.is_complete ? Math.max(time_complete) : time_stamp)
-            - (time_start[round.tasks[i].designers[j]] ? time_start[round.tasks[i].designers[j]] : time_stamp);
+        const score = round.tasks[i].is_complete ? max_duration - (time_complete[i] - time_start[i]) : 0;
         if(session.training.includes(round)) {
           scores_training[round.tasks[i].designers[j]][session.training.indexOf(round)] = score;
         } else if(session.rounds.includes(round)) {
@@ -138,7 +138,9 @@ module.exports = function(io) {
       if([...Array(task.y.length).keys()].every(i => Math.abs(task.y[i] - task.target[i]) <= session.error_tol)) {
         task.is_complete = true;
         for(let i = 0; i < task.designers.length; i++) {
-          time_complete[task.designers[i]] = time_stamp;
+          if(!time_complete[task.designers[i]]) {
+            time_complete[task.designers[i]] = time_stamp;
+          }
         }
         log('complete', task);
       } else {
