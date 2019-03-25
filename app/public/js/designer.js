@@ -109,7 +109,7 @@ $(function() {
       });
       $('#x'+(i+1)).attr('tabindex', (i+1));
       inputs[i].noUiSlider.on('set', function() {
-        var x = [...new Array(round.num_inputs).keys()].map(function(j) { return inputs[j].noUiSlider.get()});
+        var x = [...new Array(round.num_inputs).keys()].map(function(j) { return Number(inputs[j].noUiSlider.get())});
         socket.emit('update-x', x);
       });
       function pushSlider(slider, delta) {
