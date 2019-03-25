@@ -18,6 +18,6 @@ import json
 
 from collab import Session
 
-for i in range(2):
+for i in range(10):
     with open('experiment{:03d}.json'.format(i+1), 'w') as out_file:
         json.dump(Session.generate(i), out_file, default=lambda o: o.__dict__)
