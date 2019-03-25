@@ -8,13 +8,26 @@
  */
 
  $(function() {
+  var session;
   var round;
-  var errorChart;
 
   var socket = io.connect();
   socket.on('connect', function() {
       socket.emit('register-admin');
   });
+
+  $('#sessionSelect').change(function() {
+    $('#modalConfirm').modal('show');
+  });
+  $('#modalConfirmOK').click(function() {
+    session = $('#sessionSelect').val();
+    socket.emit('load-session', $('#sessionSelect').val());
+    $('#modalConfirm').modal('hide');
+  });
+  $('#modalConfirm').on('hidden.bs.modal', function() {
+    $('#sessionSelect').val(session);
+  });
+
   socket.on('round-updated', function(new_round) {
     round = new_round;
     $('#roundSelect').val(round.name);
@@ -24,6 +37,7 @@
     update_task(new_task);
   });
   socket.on('session-loaded', function(data) {
+    session = data.name.match(/\d+/g)[0];
     $('#roundSelect').empty();
     $.each(data.training, function(key, value) {
       $('#roundSelect').append($('<option></option>').attr('value', value).text(value));
@@ -93,6 +107,7 @@
   var inputs = [[]];
   var outputs = [[]];
   var status = [[]];
+  var errorChart;
 
   function update_round(round) {
     for(var i = 0; i < outputs.length; i++) {
@@ -154,7 +169,6 @@
     if(errorChart) {
       errorChart.destroy();
     }
-    $(".row-error").append('<div class="col-12"><canvas id="errorChart" height="200px"></canvas></div>');
 
     var colors = [
       'rgba(255, 99, 132, 1)',
@@ -172,6 +186,7 @@
           label: 'Designer' + (task.designers.length>1?'s ':' ') + task.designers.map(function(designer) { return designer+1; }).join(', '),
           lineTension: 0,
           fill: false,
+          borderColor: colors[round.tasks.indexOf(task) % colors.length],
           backgroundColor: colors[round.tasks.indexOf(task) % colors.length]
         }})
       },
