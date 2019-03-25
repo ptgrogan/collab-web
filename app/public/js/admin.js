@@ -60,7 +60,7 @@
   });
 
   function buildPopperTable(scores, totals) {
-    var html = '<table class="table table-striped"><thead class="thead-dark"><tr><th>Round</th>'
+    var html = '<table class="table table-sm table-striped"><thead class="thead-dark"><tr><th>Round</th>'
     for(var i = 0; i < scores.length; i++) {
       html += '<th>D&nbsp;' + (i+1) + '</th>';
     }
