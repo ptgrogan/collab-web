@@ -12,11 +12,12 @@ module.exports = function(io) {
   }
 
   let designers = []; // list of current designers
-  let time_start = []; // list of starting times
-  let time_complete = []; // list of time task complete
-  let scores_training = [[]]; // list of training scores
-  let scores = [[]]; // list of scores
   let admin = null; // current administrator
+
+  let time_start = null; // list of starting times
+  let time_complete = null; // list of time task complete
+  let scores_training = null; // list of training scores
+  let scores = null // list of scores
 
   let session = null; // shared state variable: be careful of concurrent modification
   let round = null; // shared state variable: be careful of concurrent modification
@@ -209,11 +210,8 @@ module.exports = function(io) {
     client.on('register-admin', () => {
       if(admin === null) {
         admin = client;
+        updateSession();
       }
-      client.emit('session-loaded', {
-        'training': session.training.map(round => round.name),
-        'rounds': session.rounds.map(round => round.name)
-      });
       client.emit('round-updated', round);
     });
 
@@ -288,6 +286,16 @@ module.exports = function(io) {
       }
     });
 
+    function updateSession() {
+      if(admin) {
+        admin.emit('session-loaded', {
+          'name': session.name,
+          'training': session.training.map(round => round.name),
+          'rounds': session.rounds.map(round => round.name)
+        });
+      }
+    }
+
     function updateRound() {
       // update interface for admin
       if(admin) {
@@ -312,6 +320,14 @@ module.exports = function(io) {
       updateRound();
     });
 
+    client.on('load-session', number => {
+      if(Number(number)) {
+        loadSession(Number(number));
+        updateSession();
+        updateRound();
+      }
+    })
+
     client.on('next-round', () => {
       nextRound();
       updateRound();
@@ -333,5 +349,5 @@ module.exports = function(io) {
     });
   });
 
-  loadSession(2);
+  loadSession(1);
 };
