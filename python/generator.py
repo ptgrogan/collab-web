@@ -28,7 +28,13 @@ for seed in range(10):
     # 2x2 pair: 30s --> 56s --> 1 min
     # 3x3 pair: 168s --> 476s --> 5 min
     # 4x4 pair: 257s --> 350s --> 5 min
-
+    training = [
+        Round.generate(name='Training Task 1/5 (Individual)', size=1, assignments=[[0],[1],[2],[3]], random=random),
+        Round.generate(name='Training Task 2/5 (Individual)', size=2, assignments=[[0],[1],[2],[3]], random=random),
+        Round.generate(name='Training Task 3/5 (Pair)', size=2, assignments=[[0,1],[2,3]], random=random),
+        Round.generate(name='Training Task 4/5 (Pair)', size=3, assignments=[[0,1],[2,3]], random=random),
+        Round.generate(name='Training Task 5/5 (Pair)', size=3, assignments=[[1,0],[3,2]], random=random)
+    ]
     rounds = [
         Round.generate(name='Flat Sleep (Individual)', size=2, assignments=[[0],[1],[2],[3]], random=random),
         Round.generate(name='Economic Motion (Individual)', size=2, assignments=[[0],[1],[2],[3]], random=random),
@@ -59,13 +65,7 @@ for seed in range(10):
         name = 'experiment{:03d}'.format(seed+1),
         num_designers = 4,
         error_tol = 0.05,
-        training = [
-            Round.generate(name='Training Task 1/5 (Individual)', size=1, assignments=[[0],[1],[2],[3]], random=random),
-            Round.generate(name='Training Task 2/5 (Individual)', size=2, assignments=[[0],[1],[2],[3]], random=random),
-            Round.generate(name='Training Task 3/5 (Pair)', size=2, assignments=[[0,1],[2,3]], random=random),
-            Round.generate(name='Training Task 4/5 (Pair)', size=3, assignments=[[0,1],[2,3]], random=random),
-            Round.generate(name='Training Task 5/5 (Pair)', size=3, assignments=[[1,0],[3,2]], random=random)
-        ],
+        training = training,
         rounds = rounds
     )
 
