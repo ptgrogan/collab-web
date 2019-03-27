@@ -19,3 +19,4 @@ collab: Collaborative Design
 """
 
 from .model import Session, Round, Task, Action
+from .post import PostProcessor
