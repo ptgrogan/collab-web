@@ -52,7 +52,7 @@ for seed in range(10):
     # 'Hard Development', 'Crabby Example', 'Illustrious Balance', 'Statuesque Name', 'Breezy Rain'
 
     # shuffle rounds until there are no size=4 tasks in first half of session
-    while any(sum(rounds[i].tasks[0].num_inputs) == 4 for i in range(len(rounds)//2, len(rounds))):
+    while any(sum(rounds[i].tasks[0].num_inputs) == 4 for i in range(0, len(rounds)//2)):
         random.shuffle(rounds)
 
     session = Session(
