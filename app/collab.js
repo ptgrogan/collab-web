@@ -119,11 +119,16 @@ module.exports = function(io) {
         }
       }
     }
+    if(session.training.includes(round)) {
+      log('score', scores_training.map(score => score[session.training.indexOf(round)]));
+    } else if(session.rounds.includes(round)) {
+      log('score', scores.map(score => score[session.rounds.indexOf(round)]));
+    }
   }
 
   function updateDesignerX(designerIdx, x) {
     lock.acquire('key', function(done) {
-      log('action', {'designer': designerIdx, 'x': x});
+      log('action', {'designer': designerIdx, 'input': x});
       const task = getDesignerTask(designerIdx);
       const time_stamp = new Date().getTime();
       if(!task) {
