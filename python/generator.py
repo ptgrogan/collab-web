@@ -47,10 +47,10 @@ for seed in range(10):
         Round.generate(name='Thinkable Ink (Pair)', size=2, assignments=[[0,1],[2,3]], random=random),
         Round.generate(name='Better Behavior (Pair)', size=3, assignments=[[0,1],[2,3]], random=random),
         Round.generate(name='Hallowed Sign (Pair)', size=3, assignments=[[1,0],[3,2]], random=random),
-        Round.generate(name='Absorbed Copper (Pair)', size=3, assignments=[[1,0],[3,2]], random=random),
+        #Round.generate(name='Absorbed Copper (Pair)', size=3, assignments=[[1,0],[3,2]], random=random),
         Round.generate(name='Husky Verse (Pair)', size=4, assignments=[[0,1],[2,3]], random=random),
         Round.generate(name='Chief Government (Pair)', size=4, assignments=[[0,1],[2,3]], random=random),
-        Round.generate(name='Chemical Rhythm (Pair)', size=4, assignments=[[0,1],[2,3]], random=random)
+        #Round.generate(name='Chemical Rhythm (Pair)', size=4, assignments=[[0,1],[2,3]], random=random)
     ]
 
     # 'Alert Burst, 'Wistful Act', 'Wide Growth', 'Muddled Reward', 'Brainy Damage',

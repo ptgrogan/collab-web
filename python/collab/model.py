@@ -137,6 +137,7 @@ class Task(object):
         self.time_start = None # set by post-processor
         self.time_complete = None # set by post-processor
         self.actions = None # set by post-processor
+        self.score = None # set by post-processor
 
     def getSolution(self):
         """
