@@ -61,7 +61,7 @@ class Round(object):
     """
     An experimental round with a set of technical tasks.
     """
-    def __init__(self, name, assignments, tasks):
+    def __init__(self, name, assignments, tasks, max_time):
         """
         Initializes this round.
 
@@ -73,10 +73,14 @@ class Round(object):
 
         @param tasks: the technical tasks
         @type array(Task)
+
+        @param max_time: the maximum allowable time (milliseconds)
+        @type number
         """
         self.name = name
         self.assignments = assignments
         self.tasks = tasks
+        self.max_time = max_time
 
     def getDesignerTask(self, designer):
         return next((t for t in self.tasks if designer in t.designers))
@@ -86,15 +90,17 @@ class Round(object):
         return Round(
             name = json.get('name'),
             assignments = json.get('assignments'),
-            tasks = list(map(lambda t: Task.parse(t), json.get('tasks')))
+            tasks = list(map(lambda t: Task.parse(t), json.get('tasks'))),
+            max_time = json.get('max_time')
         )
 
     @staticmethod
-    def generate(name, size, assignments, is_coupled=True, random=np.random):
+    def generate(name, size, assignments, is_coupled=True, max_time=None, random=np.random):
         return Round(
             name = name,
             assignments = assignments,
-            tasks = [Task.generate(designers, size, is_coupled=is_coupled, random=random) for designers in assignments]
+            tasks = [Task.generate(designers, size, is_coupled=is_coupled, random=random) for designers in assignments],
+            max_time = max_time*1000 if max_time is not None else None
         )
 
 class Task(object):
@@ -177,7 +183,7 @@ class Task(object):
             coupling = orth(random.rand(size, size))
         else:
             # coupling matrix has random 1/-1 along diagonal
-            coupling = np.diag(np.round(2*random.rand(size)-1))
+            coupling = np.diag(2*random.randint(0,2,size)-1)
 
         # find a target with no solution values "close" to initial condition
         solution = np.zeros(size)

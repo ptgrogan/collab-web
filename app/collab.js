@@ -96,6 +96,20 @@ module.exports = function(io) {
     }
   }
 
+  function getTimeRemaining(designerIdx) {
+    if(round.max_time) {
+      if(time_complete[designerIdx] && time_start[designerIdx]) {
+        return round.max_time - (time_complete[designerIdx] - time_start[designerIdx]);
+      } else if(time_start[designerIdx]) {
+        return Math.max(0, round.max_time - (new Date().getTime() - time_start[designerIdx]));
+      } else {
+        return round.max_time;
+      }
+    } else {
+      return null;
+    }
+  }
+
   function updateScores() {
     const time_stamp = new Date().getTime();
     const durations = new Array(time_complete.length);
@@ -108,10 +122,11 @@ module.exports = function(io) {
         durations[i] = 0;
       }
     }
-    const max_duration = durations.reduce((max, duration) => Math.max(max, duration));
+    // max duration is max time of round (if defined); otherwise longest observed duration
+    const max_duration = round.max_time ? round.max_time : durations.reduce((max, duration) => Math.max(max, duration));
     for(let i = 0; i < round.tasks.length; i++) {
       for(let j = 0; j < round.tasks[i].designers.length; j++) {
-        const score = round.tasks[i].is_complete ? max_duration - durations[round.tasks[i].designers[j]] : 0;
+        const score = round.tasks[i].is_complete ? Math.max(0, max_duration - durations[round.tasks[i].designers[j]]) : 0;
         if(session.training.includes(round)) {
           scores_training[round.tasks[i].designers[j]][session.training.indexOf(round)] = score;
         } else if(session.rounds.includes(round)) {
@@ -149,6 +164,7 @@ module.exports = function(io) {
         if(!time_start[task.designers[i]]) {
           time_start[task.designers[i]] = time_stamp;
         }
+        task.time_remaining = getTimeRemaining(task.designers[i]);
       }
 
       if([...Array(task.y.length).keys()].every(i => Math.abs(task.y[i] - task.target[i]) <= session.error_tol)) {
@@ -165,7 +181,6 @@ module.exports = function(io) {
 
       if(round.tasks.every(i => i.is_complete)) {
         round.is_complete = true;
-        updateScores(round);
         log('complete', round.name);
       } else {
         round.is_complete = false;
@@ -232,6 +247,7 @@ module.exports = function(io) {
       const task = getDesignerTask(designerIdx);
       client.emit('round-updated', {
         'name': round.name,
+        'max_time': round.max_time,
         'num_inputs': task ? task.num_inputs[task.designers.indexOf(designerIdx)] : 0,
         'num_outputs': task ? task.num_outputs[task.designers.indexOf(designerIdx)] : 0,
         'target': getDesignerTarget(designerIdx)
@@ -242,20 +258,34 @@ module.exports = function(io) {
       updateScores();
       if(session.training.includes(round)) {
         if(admin) {
-          admin.emit('score-updated', {'scores': scores_training, 'totals': scores_training.map(score => score.reduce((total, sum) => total + sum))});
+          admin.emit('score-updated', {
+            'scores': scores_training,
+            'totals': scores_training.map(score => score.reduce((total, sum) => total + sum))
+          });
         }
         for(let i = 0; i < designers.length; i++) {
           if(designers[i]) {
-            designers[i].emit('score-updated', {'scores': scores_training[i], 'score': scores_training[i][session.training.indexOf(round)], 'total': scores_training[i].reduce((total, sum) => total + sum)});
+            designers[i].emit('score-updated', {
+              'scores': scores_training[i],
+              'score': scores_training[i][session.training.indexOf(round)],
+              'total': scores_training[i].reduce((total, sum) => total + sum)
+            });
           }
         }
       } else if(session.rounds.includes(round)) {
         if(admin) {
-          admin.emit('score-updated', {'scores': scores, 'totals': scores.map(score => score.reduce((total, sum) => total + sum))});
+          admin.emit('score-updated', {
+            'scores': scores,
+            'totals': scores.map(score => score.reduce((total, sum) => total + sum))
+          });
         }
         for(let i = 0; i < designers.length; i++) {
           if(designers[i]) {
-            designers[i].emit('score-updated', {'scores': scores[i], 'score': scores[i][session.rounds.indexOf(round)], 'total': scores[i].reduce((total, sum) => total + sum)});
+            designers[i].emit('score-updated', {
+              'scores': scores[i],
+              'score': scores[i][session.rounds.indexOf(round)],
+              'total': scores[i].reduce((total, sum) => total + sum)
+            });
           }
         }
       }
@@ -269,17 +299,23 @@ module.exports = function(io) {
           designers[idx].emit('y-updated', getDesignerY(idx));
           if(task.is_complete) {
             designers[idx].emit('task-completed');
+          } else {
+            designers[idx].emit('time-updated', getTimeRemaining(idx));
           }
         }
       }
       // update inputs/outputs for admin
       if(admin) {
         admin.emit('task-updated', task);
+        admin.emit('time-updated', [...Array(designers.length).keys()].map(idx => getTimeRemaining(idx)));
       }
+
       if(round.is_complete) {
         if(admin) {
           admin.emit('round-completed');
         }
+        scoreRound();
+      } else if([...Array(designers.length).keys()].every(i => getDesignerTask(i).is_complete || getTimeRemaining(i) === 0)) {
         scoreRound();
       }
     }
@@ -295,6 +331,7 @@ module.exports = function(io) {
       if(admin) {
         admin.emit('session-loaded', {
           'name': session.name,
+          'num_designers': session.num_designers,
           'training': session.training.map(round => round.name),
           'rounds': session.rounds.map(round => round.name)
         });
@@ -312,6 +349,7 @@ module.exports = function(io) {
           const task = getDesignerTask(i);
           designers[i].emit('round-updated', {
             'name': round.name,
+            'max_time': round.max_time,
             'num_inputs': task.num_inputs[task.designers.indexOf(i)],
             'num_outputs': task.num_outputs[task.designers.indexOf(i)],
             'target': getDesignerTarget(i)

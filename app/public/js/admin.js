@@ -8,8 +8,10 @@
  */
 
  $(function() {
+  var num_designers;
   var session;
   var round;
+  var timer;
 
   var socket = io.connect();
   socket.on('connect', function() {
@@ -38,6 +40,7 @@
   });
   socket.on('session-loaded', function(data) {
     session = data.name.match(/\d+/g)[0];
+    num_designers = data.num_designers;
     $('#roundSelect').empty();
     $.each(data.training, function(key, value) {
       $('#roundSelect').append($('<option></option>').attr('value', value).text(value));
@@ -45,6 +48,14 @@
     $.each(data.rounds, function(key, value) {
       $('#roundSelect').append($('<option></option>').attr('value', value).text(value));
     });
+    $('#timeContainer').empty();
+    for(var i = 0; i < data.num_designers; i++) {
+      $('#timeContainer').append('<div class="col-' + Math.floor(12/data.num_designers) + ' alert alert-secondary d-none" id="timeContainer-' + i + '"><div class="badge badge-secondary"><span class="oi oi-clock" aria-hidden="true"></span></div> <span id="time-' + i + '"></span></div>');
+    }
+    $('#scorePopover').empty();
+    for(var i = 0; i < data.num_designers; i++) {
+      $('#scorePopover').append('<div class="col-' + Math.floor(12/data.num_designers) + ' alert alert-secondary"><div class="badge badge-secondary"><span class="oi oi-person" aria-hidden="true"></span> ' + (i+1) + '</div> <span id="score-' + i + '"></span></div>');
+    }
   });
   socket.on('round-completed', function(data) {
     $('#nextRound').removeClass('btn-outline-secondary');
@@ -65,18 +76,18 @@
     socket.emit('score-round');
   });
   socket.on('score-updated', function(data) {
-    $('#scorePopover').empty();
     var totals = new Array(data.scores.length).fill(0);
     for(var i = 0; i < data.scores.length; i++) {
-      $('#scorePopover').append('<div class="col-' + Math.floor(12/data.scores.length) + '"><div class="badge badge-secondary"><span class="oi oi-person" aria-hidden="true"></span> ' + (i+1) + '</div> ' + Math.round(data.totals[i]/1000) + '</div>');
+      $('#score-'+i).text(Math.round(data.totals[i]/1000));
     }
     $('#scorePopover').attr('data-content', buildPopperTable(data.scores, data.totals));
   });
+  socket.on('time-updated', update_time);
 
   function buildPopperTable(scores, totals) {
     var html = '<table class="table table-sm table-striped"><thead class="thead-dark"><tr><th>Round</th>'
     for(var i = 0; i < scores.length; i++) {
-      html += '<th>D&nbsp;' + (i+1) + '</th>';
+      html += '<th>D' + (i+1) + '</th>';
     }
     html += '<tr></thead><tbody>';
     if(scores.length > 0) {
@@ -202,11 +213,45 @@
         }
       }
     });
+    update_time(new Array(num_designers).fill(undefined));
     for(var i = 0; i < round.tasks.length; i++) {
       update_task(round.tasks[i]);
     }
   };
 
+  function format_time(t) {
+    var minutes = Math.floor(t/1000/60).toString();
+    var seconds = Math.floor(t/1000%60).toString();
+    var milliseconds = ((t%1000*60)*10).toString().substring(0,1);
+    return (minutes.length == 1 ? '0'+minutes : minutes) + ':' + (seconds.length == 1 ? '0'+seconds : seconds) + '.' + milliseconds;
+  }
+  function update_time(t) {
+    for(var i = 0; i < t.length; i++) {
+      if(t[i] == null && round.max_time == null) {
+        $('#timeContainer-'+i).addClass('d-none');
+      } else {
+        $('#timeContainer-'+i).removeClass('d-none');
+        if(t[i] < round.max_time/10) {
+          $('#timeContainer-'+i).removeClass('alert-secondary');
+          $('#timeContainer-'+i).removeClass('alert-warning');
+          $('#timeContainer-'+i).addClass('alert-danger');
+        } else if(t[i] < round.max_time/4) {
+          $('#timeContainer-'+i).removeClass('alert-secondary');
+          $('#timeContainer-'+i).removeClass('alert-danger');
+          $('#timeContainer-'+i).addClass('alert-warning');
+        } else {
+          $('#timeContainer-'+i).removeClass('alert-warning');
+          $('#timeContainer-'+i).removeClass('alert-danger');
+          $('#timeContainer-'+i).addClass('alert-secondary');
+        }
+        if(t[i] == null) {
+          $('#time-'+i).text(format_time(round.max_time));
+        } else {
+          $('#time-'+i).text(format_time(t[i]));
+        }
+      }
+    }
+  }
   function update_task(task) {
     if(!task.x) {
       task.x = new Array(task.inputs.length).fill(0)

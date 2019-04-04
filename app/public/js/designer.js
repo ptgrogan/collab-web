@@ -9,6 +9,7 @@
 
 $(function() {
   var round;
+  var timer;
   var audio = [new Audio('resources/success-1.mp3'), new Audio('resources/success-2.mp3')];
 
   var socket = io.connect();
@@ -20,10 +21,26 @@ $(function() {
   });
   socket.on('round-updated', function(new_round) {
     round = new_round;
+    clearInterval(timer);
     update_round(new_round);
   });
-  socket.on('y-updated', function(y) {
-    update_task(y);
+  socket.on('y-updated', update_task);
+  socket.on('time-updated', function(t) {
+    if(timer) {
+      clearInterval(timer);
+    }
+    update_time(t);
+    if(t > 0) {
+      timer = setInterval(function() {
+        t -= 200;
+        if(t > 0) {
+          update_time(t);
+        } else {
+          update_time(0);
+          clearInterval(timer);
+        }
+      }, 200);
+    }
   });
   socket.on('task-completed', function(data) {
     for(i = 0; i < inputs.length; i++) {
@@ -32,6 +49,7 @@ $(function() {
         input_buttons[i][j].prop('disabled', true);
       }
     }
+    clearInterval(timer);
     audio[Math.random() < 0.5 ? 0 : 1].play();
   });
   socket.on('score-updated', function(data) {
@@ -140,9 +158,41 @@ $(function() {
         }
       });
     }
-
+    update_time();
     update_task(new Array(round.num_outputs).fill(0));
   };
+
+  function format_time(t) {
+    var minutes = Math.floor(t/1000/60).toString();
+    var seconds = Math.floor(t/1000%60).toString();
+    var milliseconds = ((t%1000*60)*10).toString().substring(0,1);
+    return (minutes.length == 1 ? '0'+minutes : minutes) + ':' + (seconds.length == 1 ? '0'+seconds : seconds) + '.' + milliseconds;
+  }
+  function update_time(t) {
+    if(t == null && round.max_time == null) {
+      $('#timeContainer').addClass('d-none');
+    } else {
+      $('#timeContainer').removeClass('d-none');
+      if(t < round.max_time/10) {
+        $('#timeContainer').removeClass('alert-secondary');
+        $('#timeContainer').removeClass('alert-warning');
+        $('#timeContainer').addClass('alert-danger');
+      } else if(t < round.max_time/4) {
+        $('#timeContainer').removeClass('alert-secondary');
+        $('#timeContainer').removeClass('alert-danger');
+        $('#timeContainer').addClass('alert-warning');
+      } else {
+        $('#timeContainer').removeClass('alert-warning');
+        $('#timeContainer').removeClass('alert-danger');
+        $('#timeContainer').addClass('alert-secondary');
+      }
+      if(t == null) {
+        $('#time').text(format_time(round.max_time));
+      } else {
+        $('#time').text(format_time(t));
+      }
+    }
+  }
 
   function update_task(y) {
     for(var i = 0; i < y.length; i++) {
