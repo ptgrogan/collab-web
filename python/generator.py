@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from __future__ import division
 import json
 import numpy as np
 
@@ -29,26 +30,26 @@ for seed in range(10):
     # 3x3 pair: 168s --> 476s --> 5 min
     # 4x4 pair: 257s --> 350s --> 5 min
     training = [
-        Round.generate(name='Training Task 1/5 (Individual)', size=1, assignments=[[0],[1],[2],[3]], random=random),
-        Round.generate(name='Training Task 2/5 (Individual)', size=2, assignments=[[0],[1],[2],[3]], random=random),
-        Round.generate(name='Training Task 3/5 (Pair)', is_coupled=False, size=2, assignments=[[0,1],[2,3]], random=random),
-        Round.generate(name='Training Task 4/5 (Pair)', size=2, assignments=[[0,1],[2,3]], random=random),
-        Round.generate(name='Training Task 5/5 (Pair)', size=3, assignments=[[0,1],[2,3]], random=random)
+        Round.generate(name='Training Task 1/5 (Individual)', size=1, assignments=[[0],[1],[2],[3]], max_time=90, random=random),
+        Round.generate(name='Training Task 2/5 (Individual)', size=2, assignments=[[0],[1],[2],[3]], max_time=120, random=random),
+        Round.generate(name='Training Task 3/5 (Pair)', is_coupled=False, size=2, assignments=[[0,1],[2,3]], max_time=270, random=random),
+        Round.generate(name='Training Task 4/5 (Pair)', size=2, assignments=[[0,1],[2,3]], max_time=270, random=random),
+        Round.generate(name='Training Task 5/5 (Pair)', size=3, assignments=[[0,1],[2,3]], max_time=540, random=random)
     ]
     rounds = [
         Round.generate(name='Flat Sleep (Individual)', size=2, assignments=[[0],[1],[2],[3]], max_time=120, random=random),
         Round.generate(name='Economic Motion (Individual)', size=2, assignments=[[0],[1],[2],[3]], max_time=120, random=random),
         Round.generate(name='Unwritten Experience (Individual)', size=3, assignments=[[0],[1],[2],[3]], max_time=240, random=random),
         Round.generate(name='Noiseless Stone (Individual)', size=3, assignments=[[0],[1],[2],[3]], max_time=240, random=random),
-        Round.generate(name='Impolite Heat (Individual)', size=4, assignments=[[0],[1],[2],[3]], max_time=600, random=random),
+        #Round.generate(name='Impolite Heat (Individual)', size=4, assignments=[[0],[1],[2],[3]], max_time=600, random=random),
         #Round.generate(name='Arrogant Flame (Individual)', size=4, assignments=[[0],[1],[2],[3]], max_time=600, random=random),
         Round.generate(name='Staking System (Pair)', size=2, assignments=[[0,1],[2,3]], max_time=180, random=random),
         Round.generate(name='Towering Test (Pair)', size=2, assignments=[[0,1],[2,3]], max_time=180, random=random),
         Round.generate(name='Thinkable Ink (Pair)', size=2, assignments=[[0,1],[2,3]], max_time=180, random=random),
-        Round.generate(name='Better Behavior (Pair)', size=3, assignments=[[0,1],[2,3]], max_time=600, random=random),
-        Round.generate(name='Hallowed Sign (Pair)', size=3, assignments=[[1,0],[3,2]], max_time=600, random=random),
-        Round.generate(name='Absorbed Copper (Pair)', size=3, assignments=[[1,0],[3,2]], max_time=600, random=random),
-        Round.generate(name='Husky Verse (Pair)', size=4, assignments=[[0,1],[2,3]], max_time=1200, random=random),
+        Round.generate(name='Better Behavior (Pair)', size=3, assignments=[[0,1],[2,3]], max_time=360, random=random),
+        Round.generate(name='Hallowed Sign (Pair)', size=3, assignments=[[1,0],[3,2]], max_time=360, random=random),
+        Round.generate(name='Absorbed Copper (Pair)', size=3, assignments=[[1,0],[3,2]], max_time=360, random=random),
+        #Round.generate(name='Husky Verse (Pair)', size=4, assignments=[[0,1],[2,3]], max_time=1200, random=random),
         #Round.generate(name='Chief Government (Pair)', size=4, assignments=[[0,1],[2,3]], max_time=1200, random=random),
         #Round.generate(name='Chemical Rhythm (Pair)', size=4, assignments=[[0,1],[2,3]], max_time=1200, random=random)
     ]
