@@ -45,25 +45,23 @@ print("{0:>5} {4:>10} {1:>25} {2:>3} {3:>3} {5:>10} {6:>10}".format(
 # print rows for each task
 for i, round in enumerate(pp.session.training):
     for task in round.tasks:
-        if task.time_complete and task.score is not None:
-            print("{0:>5} {4:>10} {1:>25} {2:>3} {3:>3} {5:>10} {6:>10}".format(
-                "T{:d}".format(i+1),
-                round.name.replace(' (Individual)', '').replace(' (Pair)', ''),
-                sum(task.num_inputs),
-                len(task.designers),
-                '+'.join(map(lambda d: str(d+1), task.designers)),
-                "{:10.0f}".format(task.score/1000),
-                "{:10.2f}".format((task.time_complete - task.time_start)/1000)
-            ))
+        print("{0:>5} {4:>10} {1:>25} {2:>3} {3:>3} {5:>10} {6:>10}".format(
+            "T{:d}".format(i+1),
+            round.name.replace(' (Individual)', '').replace(' (Pair)', ''),
+            sum(task.num_inputs),
+            len(task.designers),
+            '+'.join(map(lambda d: str(d+1), task.designers)),
+            "{:10.0f}".format(task.score/1000) if task.score else '',
+            "{:10.2f}".format((task.time_complete - task.time_start)/1000) if task.time_complete else ''
+        ))
 for i, round in enumerate(pp.session.rounds):
     for task in round.tasks:
-        if task.time_complete and task.score is not None:
-            print("{0:>5} {4:>10} {1:>25} {2:>3} {3:>3} {5:>10} {6:>10}".format(
-                i+1,
-                round.name.replace(' (Individual)', '').replace(' (Pair)', ''),
-                sum(task.num_inputs),
-                len(task.designers),
-                '+'.join(map(lambda d: str(d+1), task.designers)),
-                "{:10.0f}".format(task.score/1000),
-                "{:10.2f}".format((task.time_complete - task.time_start)/1000)
-            ))
+        print("{0:>5} {4:>10} {1:>25} {2:>3} {3:>3} {5:>10} {6:>10}".format(
+            i+1,
+            round.name.replace(' (Individual)', '').replace(' (Pair)', ''),
+            sum(task.num_inputs),
+            len(task.designers),
+            '+'.join(map(lambda d: str(d+1), task.designers)),
+            "{:10.0f}".format(task.score/1000) if task.score else '',
+            "{:10.2f}".format((task.time_complete - task.time_start)/1000) if task.time_complete else ''
+        ))

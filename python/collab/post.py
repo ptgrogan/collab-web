@@ -97,11 +97,9 @@ class PostProcessor(object):
                     # reset round
                     for task in round.tasks:
                         task.score = content[task.designers[0]]
-                # handle round complete: reset task
+                # handle round complete
                 elif type == 'complete' and round is not None and content == round.name:
-                    # reset round
                     round.time_complete = time
-                    round = None
                 # handle task complete
                 elif type == 'complete' and round is not None:
                     designer = content.get('designers')[0]
