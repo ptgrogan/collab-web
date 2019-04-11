@@ -51,7 +51,7 @@ for i, round in enumerate(pp.session.training):
             sum(task.num_inputs),
             len(task.designers),
             '+'.join(map(lambda d: str(d+1), task.designers)),
-            "{:10.0f}".format(task.score/1000) if task.score else '',
+            "{:10.0f}".format(task.score/1000) if task.score else 0,
             "{:10.2f}".format((task.time_complete - task.time_start)/1000) if task.time_complete else ''
         ))
 for i, round in enumerate(pp.session.rounds):
@@ -62,6 +62,6 @@ for i, round in enumerate(pp.session.rounds):
             sum(task.num_inputs),
             len(task.designers),
             '+'.join(map(lambda d: str(d+1), task.designers)),
-            "{:10.0f}".format(task.score/1000) if task.score else '',
+            "{:10.0f}".format(task.score/1000) if task.score else 0,
             "{:10.2f}".format((task.time_complete - task.time_start)/1000) if task.time_complete else ''
         ))
