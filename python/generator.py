@@ -17,18 +17,14 @@ limitations under the License.
 from __future__ import division
 import json
 import numpy as np
+import os
 
 from collab import Session, Round
 
-for seed in range(10):
-    random = np.random.RandomState(seed)
-    # 2x2 individual: 14s --> 1 min
-    # 3x3 individual: 60s --> 2 min
-    # 4x4 individual: 132s -->  5 min
+NUMBER_EXPERIMENTS = 10
 
-    # 2x2 pair: 30s --> 56s --> 1 min
-    # 3x3 pair: 168s --> 476s --> 5 min
-    # 4x4 pair: 257s --> 350s --> 5 min
+for seed in range(NUMBER_EXPERIMENTS):
+    random = np.random.RandomState(seed)
     training = [
         Round.generate(name='Training Task 1/5 (Individual)', size=1, assignments=[[0],[1],[2],[3]], max_time=90, random=random),
         Round.generate(name='Training Task 2/5 (Individual)', size=2, assignments=[[0],[1],[2],[3]], max_time=120, random=random),
@@ -54,9 +50,8 @@ for seed in range(10):
         #Round.generate(name='Chemical Rhythm (Pair)', size=4, assignments=[[0,1],[2,3]], max_time=1200, random=random)
     ]
 
-    # 'Alert Burst, 'Wistful Act', 'Wide Growth', 'Muddled Reward', 'Brainy Damage',
-    # 'Befitting Plant, 'Murky Mass',  'Silky Waste', 'Incompetent Secretary',
-    # 'Hard Development', 'Crabby Example', 'Illustrious Balance', 'Statuesque Name', 'Breezy Rain'
+    # perform an initial shuffle of the tasks
+    random.shuffle(rounds)
 
     # shuffle rounds until there are no size=4 tasks in first half of session
     while any(sum(rounds[i].tasks[0].num_inputs) == 4 for i in range(0, len(rounds)//2)):
@@ -70,5 +65,6 @@ for seed in range(10):
         rounds = rounds
     )
 
-    with open('experiment{:03d}.json'.format(seed+1), 'w') as out_file:
+    # write experiment files to the server app directory
+    with open(os.path.join('..', 'app', 'experiment{:03d}.json'.format(seed+1)), 'w') as out_file:
         json.dump(session, out_file, default=lambda o: o.__dict__)
