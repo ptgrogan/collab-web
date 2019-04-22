@@ -27,7 +27,7 @@ module.exports = function(io) {
       // build the experiment file name from session identifier
       const fileName = 'experiment' + String(number).padStart(3,'0') + '.json';
       // read the experiment from file
-      session = JSON.parse(fs.readFileSync('../python/' + fileName));
+      session = JSON.parse(fs.readFileSync(fileName));
       // resize designers to conform to session requirements
       if(designers.length != session.num_designers) {
         while(designers.length < session.num_designers) {
