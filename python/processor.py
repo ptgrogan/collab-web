@@ -22,7 +22,36 @@ import os.path
 
 from collab import PostProcessor
 
-"""
+def main(log_file, json_file):
+    pp = PostProcessor(log_file, json_file)
+    # print header
+    print(pp.session.name)
+    print("{0:>5} {4:>10} {1:>25} {2:>3} {3:>3} {5:>10} {6:>10}".format(
+        "Order", "Name", "N", "n", "Designers", "Score", "Time (s)"))
+    # print rows for each task
+    for i, round in enumerate(pp.session.training):
+        for task in round.tasks:
+            print("{0:>5} {4:>10} {1:>25} {2:>3} {3:>3} {5:>10} {6:>10}".format(
+                "T{:d}".format(i+1),
+                round.name.replace(' (Individual)', '').replace(' (Pair)', ''),
+                sum(task.num_inputs),
+                len(task.designers),
+                '+'.join(map(lambda d: str(d+1), task.designers)),
+                "{:10.0f}".format(task.score/1000) if task.score else 0,
+                "{:10.2f}".format((task.time_complete - task.time_start)/1000) if task.time_complete else ''
+            ))
+    for i, round in enumerate(pp.session.rounds):
+        for task in round.tasks:
+            print("{0:>5} {4:>10} {1:>25} {2:>3} {3:>3} {5:>10} {6:>10}".format(
+                i+1,
+                round.name.replace(' (Individual)', '').replace(' (Pair)', ''),
+                sum(task.num_inputs),
+                len(task.designers),
+                '+'.join(map(lambda d: str(d+1), task.designers)),
+                "{:10.0f}".format(task.score/1000) if task.score else 0,
+                "{:10.2f}".format((task.time_complete - task.time_start)/1000) if task.time_complete else ''
+            ))
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description = "This program post-processes experimental data."
@@ -33,36 +62,3 @@ if __name__ == '__main__':
                         help = 'Experiment json file path')
     args = parser.parse_args()
     pp = PostProcessor(args.log, args.json)
-"""
-
-log_file = os.path.join('..','app','log','log1553879218290.log')
-json_file = 'experiment001.json'
-
-pp = PostProcessor(log_file, json_file)
-# print header
-print(pp.session.name)
-print("{0:>5} {4:>10} {1:>25} {2:>3} {3:>3} {5:>10} {6:>10}".format(
-    "Order", "Name", "N", "n", "Designers", "Score", "Time (s)"))
-# print rows for each task
-for i, round in enumerate(pp.session.training):
-    for task in round.tasks:
-        print("{0:>5} {4:>10} {1:>25} {2:>3} {3:>3} {5:>10} {6:>10}".format(
-            "T{:d}".format(i+1),
-            round.name.replace(' (Individual)', '').replace(' (Pair)', ''),
-            sum(task.num_inputs),
-            len(task.designers),
-            '+'.join(map(lambda d: str(d+1), task.designers)),
-            "{:10.0f}".format(task.score/1000) if task.score else 0,
-            "{:10.2f}".format((task.time_complete - task.time_start)/1000) if task.time_complete else ''
-        ))
-for i, round in enumerate(pp.session.rounds):
-    for task in round.tasks:
-        print("{0:>5} {4:>10} {1:>25} {2:>3} {3:>3} {5:>10} {6:>10}".format(
-            i+1,
-            round.name.replace(' (Individual)', '').replace(' (Pair)', ''),
-            sum(task.num_inputs),
-            len(task.designers),
-            '+'.join(map(lambda d: str(d+1), task.designers)),
-            "{:10.0f}".format(task.score/1000) if task.score else 0,
-            "{:10.2f}".format((task.time_complete - task.time_start)/1000) if task.time_complete else ''
-        ))
