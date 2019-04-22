@@ -2,7 +2,10 @@
   "name": "collab-web",
   "version": "1.0.1",
   "description": "Collaborative Design - Web Interface",
-  "author": "",
+  "author": {
+    "name": "Paul T. Grogan",
+    "email": "pgrogan@stevens.edu"
+  },
   "main": "index.js",
   "dependencies": {
     "async-lock": "~1.2.0",
@@ -72,8 +75,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@155.246.39.17:code-lab/collab-web.git"
+    "url": "git@github.com:ptgrogan/collab-web.git"
   },
-  "license": "UNLICENSED",
-  "private": true
+  "license": "Apache-2.0"
 }
